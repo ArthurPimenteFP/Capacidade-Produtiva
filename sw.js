@@ -6,8 +6,8 @@ const ASSETS_TO_CACHE = [
     './style.css',
     './script.js',
     './manifest.json',
-    './icons/colhedora.png',
-    './icons/colhedora.png',
+    './icons/icon-192.png',
+    './icons/icon-512.png',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
 ];
 
