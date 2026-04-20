@@ -1,6 +1,6 @@
 {
     "name": "Controle de Colhedoras - Tempos Produtivos",
-    "short_name": "Colhedoras",
+    "short_name": "Capacidade Produtiva",
     "description": "Sistema de cálculo de tempos produtivos para operações agrícolas de colheita",
     "start_url": "./index.html",
     "display": "standalone",
