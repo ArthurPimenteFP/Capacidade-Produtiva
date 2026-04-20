@@ -1,13 +1,13 @@
 // Service Worker - Controle de Colhedoras
-const CACHE_NAME = 'colhedoras-v1';
+const CACHE_NAME = 'colhedoras-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css',
     './script.js',
     './manifest.json',
-    './icons/icon-192.png',
-    './icons/icon-512.png',
+    './icons/colhedora.png',
+    './icons/colhedora.png',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
 ];
 
