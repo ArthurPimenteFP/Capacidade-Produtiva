@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description"
         content="Controle de Colhedoras - Sistema de cálculo de tempos produtivos para operações agrícolas de colheita">
     <title>Controle de Colhedoras - Tempos Produtivos</title>
@@ -48,22 +48,204 @@
             </div>
         </header>
 
-        <!-- Summary Cards -->
-        <section class="summary-section" id="summary-section">
-            <div class="summary-card summary-card--ton" id="summary-ton-card">
-                <div class="summary-card__icon">
+        <!-- Tabs -->
+        <nav class="app-tabs" id="app-tabs" role="tablist" aria-label="Calculadoras">
+            <button type="button" class="tab-btn" role="tab" id="tab-colhedoras" data-tab="colhedoras"
+                aria-controls="panel-colhedoras" aria-selected="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+                <span>Colhedoras</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" id="tab-capacidade" data-tab="capacidade"
+                aria-controls="panel-capacidade" aria-selected="false" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                <span>Capacidade Produtiva</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" id="tab-colheita" data-tab="colheita"
+                aria-controls="panel-colheita" aria-selected="false" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span>Tempo de Colheita</span>
+            </button>
+        </nav>
+
+        <!-- Tab: Colhedoras (conteúdo original) -->
+        <div class="tab-panel tab-panel--contents" id="panel-colhedoras" role="tabpanel" aria-labelledby="tab-colhedoras">
+            <!-- Summary Cards -->
+            <section class="summary-section" id="summary-section">
+                <div class="summary-card summary-card--ton" id="summary-ton-card">
+                    <div class="summary-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                    </div>
+                    <div class="summary-card__content">
+                        <span class="summary-card__label">Total Ton/h</span>
+                        <span class="summary-card__value" id="total-tonh">0</span>
+                    </div>
+                </div>
+                <div class="summary-card summary-card--trans" id="summary-trans-card">
+                    <div class="summary-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <rect x="1" y="3" width="15" height="13" />
+                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                            <circle cx="5.5" cy="18.5" r="2.5" />
+                            <circle cx="18.5" cy="18.5" r="2.5" />
+                        </svg>
+                    </div>
+                    <div class="summary-card__content">
+                        <span class="summary-card__label">Transbordos Necessários</span>
+                        <span class="summary-card__value" id="total-transbordos">0,00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add New CD Form -->
+            <section class="form-section" id="form-section">
+                <h2 class="section-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
                     </svg>
+                    <span id="form-title">Adicionar Colhedora</span>
+                </h2>
+                <form id="cd-form" autocomplete="off">
+                    <input type="hidden" id="edit-id" value="">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="frota-number">Nº Frota</label>
+                            <input type="number" id="frota-number" placeholder="Ex: 526" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tempo-carregamento">Carregamento (min)</label>
+                            <input type="number" id="tempo-carregamento" placeholder="Ex: 18" min="0.1" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tempo-ciclo">Ciclo (min)</label>
+                            <input type="number" id="tempo-ciclo" placeholder="Ex: 29" min="0.1" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <!-- Live Preview -->
+                    <div class="live-preview" id="live-preview" style="display: none;">
+                        <div class="live-preview__header">Prévia do cálculo</div>
+                        <div class="live-preview__content">
+                            <span class="live-preview__item">
+                                <span class="live-preview__label">Ton/h:</span>
+                                <span class="live-preview__value" id="preview-tonh">—</span>
+                            </span>
+                            <span class="live-preview__divider">|</span>
+                            <span class="live-preview__item">
+                                <span class="live-preview__label">Relação:</span>
+                                <span class="live-preview__value" id="preview-relacao">—</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn--primary" id="btn-submit">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            <span id="btn-submit-text">Adicionar</span>
+                        </button>
+                        <button type="button" class="btn btn--secondary" id="btn-cancel" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Harvesters List -->
+            <section class="list-section" id="list-section">
+                <div class="list-header">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6" />
+                            <line x1="8" y1="12" x2="21" y2="12" />
+                            <line x1="8" y1="18" x2="21" y2="18" />
+                            <line x1="3" y1="6" x2="3.01" y2="6" />
+                            <line x1="3" y1="12" x2="3.01" y2="12" />
+                            <line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                        Colhedoras Cadastradas
+                    </h2>
+                    <span class="badge" id="cd-count">0</span>
                 </div>
-                <div class="summary-card__content">
-                    <span class="summary-card__label">Total Ton/h</span>
-                    <span class="summary-card__value" id="total-tonh">0</span>
+
+                <div class="table-container" id="table-container">
+                    <!-- Empty state -->
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-state__icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                                <polyline points="16 21 12 17 8 21" />
+                                <line x1="12" y1="3" x2="12" y2="7" />
+                                <line x1="8" y1="5" x2="12" y2="7" />
+                                <line x1="16" y1="5" x2="12" y2="7" />
+                            </svg>
+                        </div>
+                        <p class="empty-state__text">Nenhuma colhedora cadastrada</p>
+                        <p class="empty-state__hint">Preencha o formulário acima para começar</p>
+                    </div>
+
+                    <!-- Table -->
+                    <table class="cd-table" id="cd-table" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>CD</th>
+                                <th>Carreg.</th>
+                                <th>Ciclo</th>
+                                <th>Ton/h</th>
+                                <th>Relação</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cd-table-body">
+                        </tbody>
+                        <tfoot id="cd-table-footer">
+                            <tr>
+                                <td colspan="3" class="footer-label">TOTAIS</td>
+                                <td class="footer-value" id="footer-tonh">0</td>
+                                <td class="footer-value" id="footer-relacao">0,00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-            </div>
-            <div class="summary-card summary-card--trans" id="summary-trans-card">
-                <div class="summary-card__icon">
+            </section>
+
+            <!-- Truck Calculation Section -->
+            <section class="truck-section" id="truck-section">
+                <h2 class="section-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <rect x="1" y="3" width="15" height="13" />
@@ -71,193 +253,198 @@
                         <circle cx="5.5" cy="18.5" r="2.5" />
                         <circle cx="18.5" cy="18.5" r="2.5" />
                     </svg>
-                </div>
-                <div class="summary-card__content">
-                    <span class="summary-card__label">Transbordos Necessários</span>
-                    <span class="summary-card__value" id="total-transbordos">0,00</span>
-                </div>
-            </div>
-        </section>
+                    Cálculo de Caminhões
+                </h2>
 
-        <!-- Add New CD Form -->
-        <section class="form-section" id="form-section">
-            <h2 class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                </svg>
-                <span id="form-title">Adicionar Colhedora</span>
-            </h2>
-            <form id="cd-form" autocomplete="off">
-                <input type="hidden" id="edit-id" value="">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="frota-number">Nº Frota</label>
-                        <input type="number" id="frota-number" placeholder="Ex: 526" min="1" required>
+                <div class="truck-grid">
+                    <div class="truck-input-group">
+                        <div class="form-group">
+                            <label for="peso-caminhao">Capacidade do Caminhão (ton)</label>
+                            <input type="number" id="peso-caminhao" placeholder="Ex: 45" min="0.1" step="0.1">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="tempo-carregamento">Carregamento (min)</label>
-                        <input type="number" id="tempo-carregamento" placeholder="Ex: 18" min="0.1" step="0.1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="tempo-ciclo">Ciclo (min)</label>
-                        <input type="number" id="tempo-ciclo" placeholder="Ex: 29" min="0.1" step="0.1" required>
+
+                    <div class="truck-result-group">
+                        <div class="truck-result-card" id="truck-result-card">
+                            <div class="truck-result-card__header">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="1" y="3" width="15" height="13" />
+                                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                                    <circle cx="5.5" cy="18.5" r="2.5" />
+                                    <circle cx="18.5" cy="18.5" r="2.5" />
+                                </svg>
+                                <span>Caminhões necessários/hora</span>
+                            </div>
+                            <div class="truck-result-card__value" id="truck-result-value">—</div>
+                            <div class="truck-result-card__detail" id="truck-result-detail"></div>
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Live Preview -->
-                <div class="live-preview" id="live-preview" style="display: none;">
-                    <div class="live-preview__header">Prévia do cálculo</div>
-                    <div class="live-preview__content">
-                        <span class="live-preview__item">
-                            <span class="live-preview__label">Ton/h:</span>
-                            <span class="live-preview__value" id="preview-tonh">—</span>
-                        </span>
-                        <span class="live-preview__divider">|</span>
-                        <span class="live-preview__item">
-                            <span class="live-preview__label">Relação:</span>
-                            <span class="live-preview__value" id="preview-relacao">—</span>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn--primary" id="btn-submit">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        <span id="btn-submit-text">Adicionar</span>
-                    </button>
-                    <button type="button" class="btn btn--secondary" id="btn-cancel" style="display: none;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                        Cancelar
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <!-- Harvesters List -->
-        <section class="list-section" id="list-section">
-            <div class="list-header">
-                <h2 class="section-title">
+            <!-- Action Buttons -->
+            <section class="actions-section" id="actions-section">
+                <button type="button" class="btn btn--danger btn--block" id="btn-clear-all">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
-                        <line x1="8" y1="6" x2="21" y2="6" />
-                        <line x1="8" y1="12" x2="21" y2="12" />
-                        <line x1="8" y1="18" x2="21" y2="18" />
-                        <line x1="3" y1="6" x2="3.01" y2="6" />
-                        <line x1="3" y1="12" x2="3.01" y2="12" />
-                        <line x1="3" y1="18" x2="3.01" y2="18" />
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
                     </svg>
-                    Colhedoras Cadastradas
-                </h2>
-                <span class="badge" id="cd-count">0</span>
-            </div>
+                    Limpar Tudo
+                </button>
+            </section>
+        </div>
 
-            <div class="table-container" id="table-container">
-                <!-- Empty state -->
-                <div class="empty-state" id="empty-state">
-                    <div class="empty-state__icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                            <polyline points="16 21 12 17 8 21" />
-                            <line x1="12" y1="3" x2="12" y2="7" />
-                            <line x1="8" y1="5" x2="12" y2="7" />
-                            <line x1="16" y1="5" x2="12" y2="7" />
+        <!-- Tab: Capacidade Produtiva -->
+        <div class="tab-panel tab-panel--calc" id="panel-capacidade" role="tabpanel" aria-labelledby="tab-capacidade"
+            hidden>
+            <div class="calc-layout">
+                <section class="calc-card" id="cap-section">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="18" y1="20" x2="18" y2="10" />
+                            <line x1="12" y1="20" x2="12" y2="4" />
+                            <line x1="6" y1="20" x2="6" y2="14" />
                         </svg>
-                    </div>
-                    <p class="empty-state__text">Nenhuma colhedora cadastrada</p>
-                    <p class="empty-state__hint">Preencha o formulário acima para começar</p>
-                </div>
-
-                <!-- Table -->
-                <table class="cd-table" id="cd-table" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>CD</th>
-                            <th>Carreg.</th>
-                            <th>Ciclo</th>
-                            <th>Ton/h</th>
-                            <th>Relação</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cd-table-body">
-                    </tbody>
-                    <tfoot id="cd-table-footer">
-                        <tr>
-                            <td colspan="3" class="footer-label">TOTAIS</td>
-                            <td class="footer-value" id="footer-tonh">0</td>
-                            <td class="footer-value" id="footer-relacao">0,00</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </section>
-
-        <!-- Truck Calculation Section -->
-        <section class="truck-section" id="truck-section">
-            <h2 class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <rect x="1" y="3" width="15" height="13" />
-                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                    <circle cx="5.5" cy="18.5" r="2.5" />
-                    <circle cx="18.5" cy="18.5" r="2.5" />
-                </svg>
-                Cálculo de Caminhões
-            </h2>
-
-            <div class="truck-grid">
-                <div class="truck-input-group">
-                    <div class="form-group">
-                        <label for="peso-caminhao">Capacidade do Caminhão (ton)</label>
-                        <input type="number" id="peso-caminhao" placeholder="Ex: 45" min="0.1" step="0.1">
-                    </div>
-                </div>
-
-                <div class="truck-result-group">
-                    <div class="truck-result-card" id="truck-result-card">
-                        <div class="truck-result-card__header">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="1" y="3" width="15" height="13" />
-                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                                <circle cx="5.5" cy="18.5" r="2.5" />
-                                <circle cx="18.5" cy="18.5" r="2.5" />
-                            </svg>
-                            <span>Caminhões necessários/hora</span>
+                        Capacidade Produtiva
+                    </h2>
+                    <form id="cap-form" autocomplete="off" novalidate>
+                        <div class="calc-grid">
+                            <div class="form-group">
+                                <label for="cap-tch">Tch (t/ha)</label>
+                                <input type="text" id="cap-tch" inputmode="decimal" placeholder="Ex: 80">
+                            </div>
+                            <div class="form-group">
+                                <label for="cap-divisor">Divisor</label>
+                                <select id="cap-divisor" required>
+                                    <option value="" disabled selected>Selecione</option>
+                                    <option value="3.333">3,333</option>
+                                    <option value="4.166">4,166</option>
+                                    <option value="6.666">6,666</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cap-velocidade">Velocidade (km/h)</label>
+                                <input type="text" id="cap-velocidade" inputmode="decimal" placeholder="Ex: 6">
+                            </div>
+                            <div class="form-group">
+                                <label for="cap-manobra">% de Manobra</label>
+                                <input type="text" id="cap-manobra" inputmode="decimal" placeholder="Ex: 80">
+                            </div>
+                            <div class="form-group">
+                                <label for="cap-horas">Horas</label>
+                                <input type="text" id="cap-horas" inputmode="decimal" value="13" placeholder="Ex: 13">
+                            </div>
+                            <div class="form-group">
+                                <label for="cap-maquinas">Nº de máquinas</label>
+                                <input type="text" id="cap-maquinas" inputmode="numeric" placeholder="Ex: 2">
+                            </div>
                         </div>
-                        <div class="truck-result-card__value" id="truck-result-value">—</div>
-                        <div class="truck-result-card__detail" id="truck-result-detail"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                        <p class="calc-error" id="cap-error" role="alert" hidden></p>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary" id="cap-calc">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Calcular
+                            </button>
+                            <button type="button" class="btn btn--secondary" id="cap-clear">Limpar</button>
+                        </div>
+                    </form>
+                </section>
 
-        <!-- Action Buttons -->
-        <section class="actions-section" id="actions-section">
-            <button type="button" class="btn btn--danger btn--block" id="btn-clear-all">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    <line x1="10" y1="11" x2="10" y2="17" />
-                    <line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-                Limpar Tudo
-            </button>
-        </section>
+                <section class="calc-result is-empty" id="cap-result" aria-live="polite">
+                    <div class="result-hero">
+                        <span class="result-hero__label">Capacidade produtiva</span>
+                        <div class="result-hero__value" id="cap-result-value">—</div>
+                        <span class="result-hero__hint" id="cap-result-hint">Preencha os campos e toque em Calcular</span>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Tab: Tempo de Colheita -->
+        <div class="tab-panel tab-panel--calc" id="panel-colheita" role="tabpanel" aria-labelledby="tab-colheita"
+            hidden>
+            <div class="calc-layout">
+                <section class="calc-card" id="col-section">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        Tempo de Colheita
+                    </h2>
+                    <form id="col-form" autocomplete="off" novalidate>
+                        <div class="calc-grid">
+                            <div class="form-group form-group--full">
+                                <label for="col-hectares">Hectares a colher</label>
+                                <input type="text" id="col-hectares" inputmode="decimal" placeholder="Ex: 50">
+                            </div>
+                            <div class="form-group form-group--full">
+                                <label for="col-datahora">Data/hora atual (Brasília)</label>
+                                <input type="text" id="col-datahora" class="input-datetime" readonly tabindex="-1"
+                                    inputmode="none" aria-readonly="true">
+                            </div>
+                            <div class="form-group">
+                                <label for="col-velocidade">Velocidade de colheita</label>
+                                <input type="text" id="col-velocidade" inputmode="decimal" placeholder="Ex: 5">
+                            </div>
+                            <div class="form-group">
+                                <label for="col-colhedoras">Qtd. de colhedoras</label>
+                                <input type="text" id="col-colhedoras" inputmode="numeric" placeholder="Ex: 5">
+                            </div>
+                            <div class="form-group form-group--full">
+                                <label for="col-manobra">% de manobra da colhedora</label>
+                                <input type="text" id="col-manobra" inputmode="decimal" placeholder="Ex: 21">
+                            </div>
+                        </div>
+                        <p class="calc-error" id="col-error" role="alert" hidden></p>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary" id="col-calc">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Calcular
+                            </button>
+                            <button type="button" class="btn btn--secondary" id="col-clear">Limpar</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="calc-result is-empty" id="col-result" aria-live="polite">
+                    <div class="forecast-card" id="col-forecast-card">
+                        <span class="forecast-card__label">Previsão de término</span>
+                        <div class="forecast-card__value" id="col-forecast">—</div>
+                        <span class="forecast-card__hint" id="col-forecast-hint">Preencha os campos e toque em Calcular</span>
+                    </div>
+                    <dl class="result-list">
+                        <div class="result-list__row">
+                            <dt>Horas de colheita</dt>
+                            <dd>
+                                <span class="result-list__value" id="col-horas">—</span>
+                                <span class="result-list__sub" id="col-horas-dec"></span>
+                            </dd>
+                        </div>
+                        <div class="result-list__row">
+                            <dt>Dias de colheita</dt>
+                            <dd><span class="result-list__value" id="col-dias">—</span></dd>
+                        </div>
+                        <div class="result-list__row">
+                            <dt>Hectares por hora</dt>
+                            <dd><span class="result-list__value" id="col-hah">—</span></dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+        </div>
 
         <!-- Toast Notification -->
         <div class="toast" id="toast">
@@ -266,11 +453,12 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="calculadoras.js"></script>
     <script>
         // Register Service Worker for offline support
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('sw.js')
                     .then((reg) => console.log('Service Worker registrado:', reg.scope))
                     .catch((err) => console.log('Service Worker erro:', err));
             });

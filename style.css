@@ -85,6 +85,19 @@
     --transition-fast: 150ms ease;
     --transition-base: 250ms ease;
     --transition-slow: 350ms ease;
+
+    /* Alturas dos elementos sticky (recalculadas via JS) */
+    --header-h: 72px;
+    --tabs-h: 58px;
+
+    /* Safe areas (notch / barra inferior no PWA) */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+
+    /* Deslocamento total do conteúdo sticky */
+    --sticky-offset: calc(var(--header-h) + var(--tabs-h));
 }
 
 /* ===========================
@@ -105,11 +118,13 @@ html {
 
 body {
     font-family: var(--font-family);
+    overflow-x: hidden;
     font-size: var(--font-size-base);
     color: var(--color-text);
     background-color: var(--color-background);
     line-height: 1.6;
     min-height: 100vh;
+    min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -120,8 +135,9 @@ body {
 .app-container {
     max-width: 100%;
     margin: 0 auto;
-    padding-bottom: var(--space-2xl);
+    padding-bottom: calc(var(--space-2xl) + var(--safe-bottom));
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 /* ===========================
@@ -131,7 +147,7 @@ body {
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    padding: var(--space-xl) var(--space-lg);
+    padding: calc(var(--space-xl) + var(--safe-top)) calc(var(--space-lg) + var(--safe-right)) var(--space-xl) calc(var(--space-lg) + var(--safe-left));
     background: linear-gradient(135deg, var(--green-700) 0%, var(--green-600) 50%, var(--green-500) 100%);
     color: var(--white);
     position: sticky;
@@ -149,6 +165,7 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -158,7 +175,8 @@ body {
 }
 
 .header-text {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .header-text h1 {
@@ -185,6 +203,9 @@ body {
     border-radius: var(--radius-full);
     font-size: var(--font-size-xs);
     font-weight: 500;
+    flex-shrink: 0;
+    white-space: nowrap;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     animation: pulse-badge 3s ease-in-out infinite;
 }
@@ -279,6 +300,13 @@ body {
     height: 20px;
 }
 
+.summary-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    min-width: 0;
+}
+
 .summary-card__label {
     font-size: var(--font-size-xs);
     color: var(--color-text-secondary);
@@ -289,6 +317,7 @@ body {
 
 .summary-card__value {
     font-size: var(--font-size-2xl);
+    font-variant-numeric: tabular-nums;
     font-weight: 800;
     color: var(--color-text);
     letter-spacing: -0.03em;
@@ -334,8 +363,15 @@ body {
 
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: var(--space-md);
+    align-items: end;
+}
+
+/* Rótulos que quebram em duas linhas não podem desalinhar os campos */
+.form-grid .form-group {
+    justify-content: flex-end;
+    min-width: 0;
 }
 
 .form-group {
@@ -364,7 +400,9 @@ body {
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
     background: var(--gray-50);
     text-align: center;
+    min-width: 0;
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .form-group input::-webkit-inner-spin-button,
@@ -460,6 +498,17 @@ body {
     min-height: 48px;
     user-select: none;
     -webkit-user-select: none;
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .btn svg {
@@ -613,11 +662,15 @@ body {
 /* Table */
 .table-container {
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
+    /* espaço para a sombra da tabela não ser cortada */
+    padding-bottom: 2px;
 }
 
 .cd-table {
     width: 100%;
+    min-width: 440px;
     border-collapse: separate;
     border-spacing: 0;
     background: var(--white);
@@ -761,7 +814,7 @@ body {
    =========================== */
 .toast {
     position: fixed;
-    bottom: -60px;
+    bottom: -120px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--gray-800);
@@ -773,11 +826,12 @@ body {
     box-shadow: var(--shadow-xl);
     z-index: 1000;
     transition: bottom var(--transition-base);
-    white-space: nowrap;
+    max-width: calc(100% - 2 * var(--space-lg));
+    text-align: center;
 }
 
 .toast--visible {
-    bottom: 30px;
+    bottom: calc(30px + var(--safe-bottom));
 }
 
 .toast--success {
@@ -835,6 +889,7 @@ body {
     z-index: 999;
     padding: var(--space-lg);
     animation: fadeIn 0.15s ease;
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 
@@ -952,6 +1007,13 @@ body {
     color: #3b82f6;
 }
 
+.truck-result-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
 .truck-result-card {
     background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
     border: 1px solid #bfdbfe;
@@ -1030,9 +1092,10 @@ body {
     .app-container {
         display: grid;
         grid-template-columns: minmax(360px, 1fr) 2fr;
-        grid-template-rows: auto auto 1fr auto auto;
+        grid-template-rows: auto auto auto 1fr auto auto;
         grid-template-areas:
             "header  header"
+            "tabs    tabs"
             "summary summary"
             "form    list"
             "truck   truck"
@@ -1066,13 +1129,22 @@ body {
         font-size: 2.5rem;
     }
 
+    /* Na coluna lateral o formulário fica em 1 + 2 campos */
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-grid .form-group:first-child {
+        grid-column: 1 / -1;
+    }
+
     .form-section {
         grid-area: form;
         margin: 0 0 0 var(--space-2xl);
         border-radius: var(--radius-lg);
         align-self: start;
         position: sticky;
-        top: 90px;
+        top: calc(var(--sticky-offset) + var(--space-lg));
     }
 
     .list-section {
@@ -1111,7 +1183,7 @@ body {
     }
 
     .truck-grid {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: minmax(240px, 1fr) minmax(280px, 1.4fr);
     }
 
     .truck-result-card__value {
@@ -1207,14 +1279,60 @@ body {
         padding: var(--space-md);
     }
 
+    /* No celular a tabela cabe inteira na tela, sem rolagem lateral */
+    .cd-table {
+        min-width: 0;
+    }
+
     .cd-table thead th,
     .cd-table tbody td {
-        padding: var(--space-sm) var(--space-xs);
+        padding: var(--space-sm) 3px;
         font-size: var(--font-size-xs);
+        white-space: nowrap;
+    }
+
+    .cd-table thead th {
+        font-size: 0.625rem;
+        letter-spacing: 0.02em;
+    }
+
+    .cd-table thead th:first-child,
+    .cd-table tbody td:first-child {
+        padding-left: var(--space-sm);
+    }
+
+    .cd-table thead th:last-child,
+    .cd-table tbody td:last-child {
+        padding-right: var(--space-sm);
+    }
+
+    .cd-actions {
+        gap: 2px;
+    }
+
+    .btn--icon {
+        min-height: 32px;
+        min-width: 32px;
+        padding: 0;
+    }
+
+    .btn--icon svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .cd-value--ton {
+        padding: 2px 6px;
     }
 
     .cd-label {
-        font-size: var(--font-size-sm);
+        font-size: var(--font-size-xs);
+        gap: var(--space-xs);
+    }
+
+    .cd-label__dot {
+        width: 6px;
+        height: 6px;
     }
 
     .app-header {
@@ -1249,5 +1367,484 @@ body {
 @media (max-width: 360px) {
     .summary-section {
         grid-template-columns: 1fr;
+    }
+}
+
+
+/* ===========================
+   TABS & NEW CALCULATORS
+   (Capacidade Produtiva / Tempo de Colheita)
+   =========================== */
+/* --- Tab bar --- */
+.app-tabs {
+    grid-area: tabs;
+    display: flex;
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+    background: var(--white);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: var(--header-h);
+    z-index: 90;
+}
+
+.tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 58px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--space-sm) var(--space-xs);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--color-text-secondary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: color var(--transition-fast), background-color var(--transition-fast),
+        border-color var(--transition-fast);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.tab-btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.tab-btn:hover {
+    background: var(--gray-50);
+    color: var(--gray-700);
+}
+
+.tab-btn[aria-selected="true"] {
+    color: var(--green-700);
+    background: var(--green-50);
+    border-bottom-color: var(--green-600);
+}
+
+.tab-btn:focus-visible {
+    outline: 2px solid var(--green-600);
+    outline-offset: -2px;
+}
+
+/* --- Panels --- */
+.tab-panel[hidden] {
+    display: none;
+}
+
+/* Painel original: os filhos continuam sendo itens do grid principal */
+.tab-panel--contents {
+    display: contents;
+}
+
+/* O painel de colhedoras agora fica logo abaixo das abas */
+.tab-panel--contents .summary-section {
+    margin-top: 0;
+}
+
+.tab-panel--calc {
+    min-width: 0;
+}
+
+/* --- Calculator layout --- */
+.calc-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+    align-items: start;
+}
+
+.calc-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.calc-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--green-500), var(--green-400));
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+.form-group--full {
+    grid-column: 1 / -1;
+}
+
+/* Rótulos longos podem quebrar linha: mantém os campos alinhados pela base */
+.calc-grid .form-group {
+    justify-content: flex-end;
+}
+
+/* Inputs e select com a mesma altura */
+.calc-grid .form-group input,
+.calc-grid .form-group select {
+    height: 3.25rem;
+}
+
+/* Select com o mesmo visual dos campos numéricos */
+.form-group select {
+    width: 100%;
+    padding: var(--space-md);
+    padding-right: 2.25rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-family);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+    background-color: var(--gray-50);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.125rem;
+    text-align: center;
+    text-align-last: center;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-group select:invalid {
+    color: var(--gray-400);
+    font-weight: 400;
+    font-size: var(--font-size-sm);
+}
+
+.form-group select option {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background-color: var(--white);
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
+}
+
+/* Data/hora automática: somente leitura */
+.input-datetime {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+
+.form-group input.input-datetime[readonly] {
+    background: var(--green-50);
+    border-color: var(--green-200);
+    color: var(--green-800);
+    cursor: default;
+}
+
+.form-group input.input-datetime[readonly]:focus {
+    box-shadow: none;
+}
+
+/* Campo inválido */
+.form-group input.is-invalid,
+.form-group select.is-invalid {
+    border-color: var(--red-400);
+    background-color: var(--red-50);
+}
+
+.form-group input.is-invalid:focus,
+.form-group select.is-invalid:focus {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
+
+.calc-error {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--red-50);
+    border: 1px solid var(--red-100);
+    border-radius: var(--radius-sm);
+    color: var(--red-600);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    animation: fadeIn 0.2s ease;
+}
+
+.calc-error[hidden] {
+    display: none;
+}
+
+/* --- Results --- */
+.calc-result {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    transition: opacity var(--transition-base);
+    scroll-margin-top: calc(var(--sticky-offset) + var(--space-md));
+}
+
+/* Resultado antigo (entradas alteradas depois do último cálculo) */
+.calc-result.is-stale {
+    opacity: 0.45;
+}
+
+.result-hero {
+    background: linear-gradient(135deg, var(--green-50) 0%, var(--green-100) 100%);
+    border: 1px solid var(--green-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--space-sm);
+    min-height: 160px;
+}
+
+.result-hero__label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--green-700);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.result-hero__value {
+    font-size: clamp(2rem, 9vw, 3rem);
+    font-weight: 800;
+    color: var(--green-800);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+}
+
+.result-hero__value .unit {
+    font-size: 0.4em;
+    font-weight: 600;
+    letter-spacing: 0;
+    margin-left: 0.25em;
+    color: var(--green-700);
+}
+
+.result-hero__value.updated,
+.forecast-card__value.updated {
+    animation: value-pop 0.3s ease;
+}
+
+.result-hero__hint {
+    font-size: var(--font-size-xs);
+    color: var(--green-700);
+    font-weight: 500;
+}
+
+.result-hero__hint:empty,
+.forecast-card__hint:empty {
+    display: none;
+}
+
+/* Previsão de término */
+.forecast-card {
+    background: linear-gradient(135deg, var(--green-700) 0%, var(--green-600) 50%, var(--green-500) 100%);
+    color: var(--white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-sm);
+    box-shadow: 0 4px 20px rgba(22, 163, 74, 0.25);
+}
+
+.forecast-card__label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.9;
+}
+
+.forecast-card__value {
+    font-size: clamp(1.25rem, 6vw, 2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.forecast-card__hint {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    opacity: 0.85;
+}
+
+/* Lista de resultados */
+.result-list {
+    background: var(--white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.result-list__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+}
+
+.result-list__row + .result-list__row {
+    border-top: 1px solid var(--gray-100);
+}
+
+.result-list dt {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.result-list dd {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.result-list__value {
+    font-size: var(--font-size-xl);
+    font-weight: 800;
+    color: var(--green-800);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.result-list__sub {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.result-list__sub:empty {
+    display: none;
+}
+
+.calc-result.is-empty .result-list__value {
+    color: var(--gray-400);
+}
+
+/* --- Desktop --- */
+@media (min-width: 900px) {
+    .app-tabs {
+        padding: 0 var(--space-2xl);
+    }
+
+    .tab-btn {
+        flex: 0 0 auto;
+        flex-direction: row;
+        gap: var(--space-sm);
+        padding: 0 var(--space-xl);
+        font-size: var(--font-size-base);
+    }
+
+    .tab-panel--calc {
+        grid-column: 1 / -1;
+        grid-row: 3 / -1;
+    }
+
+    .calc-layout {
+        grid-template-columns: minmax(360px, 1fr) minmax(320px, 1fr);
+        gap: var(--space-xl);
+        max-width: 1120px;
+        width: 100%;
+        margin: 0 auto;
+        padding: var(--space-2xl);
+    }
+
+    .calc-card {
+        position: sticky;
+        top: calc(var(--sticky-offset) + var(--space-lg));
+    }
+}
+
+@media (min-width: 1280px) {
+    .app-tabs {
+        padding: 0 calc(var(--space-2xl) * 1.5);
+    }
+}
+
+/* --- Mobile --- */
+@media (max-width: 480px) {
+    .calc-layout {
+        padding: var(--space-md);
+        gap: var(--space-md);
+    }
+
+    .calc-card {
+        padding: var(--space-lg);
+    }
+
+    .calc-grid {
+        gap: var(--space-sm) var(--space-sm);
+    }
+
+    .form-group select,
+    .form-group input {
+        font-size: var(--font-size-lg);
+    }
+
+    .result-hero,
+    .forecast-card {
+        padding: var(--space-lg);
+    }
+
+    .result-hero {
+        min-height: 130px;
+    }
+}
+
+@media (max-width: 360px) {
+    .tab-btn {
+        font-size: 0.6875rem;
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

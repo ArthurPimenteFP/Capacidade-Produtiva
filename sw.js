@@ -1,19 +1,25 @@
-const CACHE_NAME = 'colhedoras-v3';
+const CACHE_NAME = 'colhedoras-v6';
 
+// Caminhos relativos ao local do sw.js: funcionam na raiz do domínio
+// e em subdiretórios (ex.: GitHub Pages em /Capacidade-Produtiva/)
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    './',
+    './index.html',
+    './style.css',
+    './script.js',
+    './calculadoras.js',
+    './manifest.json',
+    './icons/icon-192.png',
+    './icons/icon-512.png'
 ];
 
 // INSTALL
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+        caches.open(CACHE_NAME).then(cache =>
+            // cache: 'reload' ignora o cache HTTP do navegador e garante os arquivos mais novos
+            cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })))
+        )
     );
     self.skipWaiting();
 });
@@ -47,7 +53,7 @@ self.addEventListener('fetch', (event) => {
                 })
                 .catch(() => {
                     if (event.request.mode === 'navigate') {
-                        return caches.match('/index.html');
+                        return caches.match('./index.html');
                     }
                 });
         })

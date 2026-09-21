@@ -11,6 +11,8 @@ Sistema web PWA para cálculo operacional de colhedoras agrícolas.
 - 💾 Dados salvos no LocalStorage (persistem entre sessões)
 - 📱 PWA - funciona offline como um app no celular
 - 🖥️ Layout responsivo (desktop fullscreen + mobile)
+- 🗂️ Abas: **Colhedoras**, **Capacidade Produtiva** e **Tempo de Colheita**
+- 🕒 Tempo de Colheita com data/hora de Brasília (UTC−3) e previsão de término
 
 ## Como usar no celular (sem internet)
 
@@ -24,3 +26,27 @@ Sistema web PWA para cálculo operacional de colhedoras agrícolas.
 - **Ton/h** = (18 × 60) ÷ Tempo de carregamento
 - **Relação Transbordo** = Tempo de ciclo ÷ Tempo de carregamento
 - **Caminhões/h** = Total Ton/h ÷ Capacidade do caminhão
+
+### Capacidade Produtiva (aba)
+
+- Produtividade base = Tch ÷ Divisor × Velocidade
+- Após manobra = base × (1 − Manobra/100)
+- **Resultado (t/dia)** = após manobra × Horas × Nº de máquinas
+- Divisores disponíveis: 3,333 · 4,166 · 6,666 (Horas inicia em 13)
+
+### Tempo de Colheita (aba)
+
+Parâmetros internos: 15 h de colheita por dia e divisor 6,667.
+
+- Capacidade diária = Velocidade × 15 ÷ 6,667 × Qtd. de colhedoras
+- Hectares/hora = capacidade diária ÷ 24
+- Horas totais = (Hectares ÷ Hectares/hora) × (1 + Manobra/100)
+- Dias = Horas totais ÷ 24
+- Previsão de término = data/hora inicial (Brasília, UTC−3) + horas totais (com segundos)
+
+> Estas fórmulas são apenas documentação de desenvolvimento e não são exibidas na interface.
+
+## Atualização do PWA
+
+Ao alterar arquivos do app, incremente `CACHE_NAME` em `sw.js` (atualmente `colhedoras-v5`)
+e mantenha a lista `STATIC_ASSETS` em dia (inclui `calculadoras.js`).
