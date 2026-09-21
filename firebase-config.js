@@ -11,12 +11,11 @@
 // (arquivo firestore.rules), não por esconder este arquivo.
 
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-const firebaseConfig = {
+window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyBUVO32fUsugyMBPF-wXD_7E1l6Co3YDHE",
   authDomain: "controle-colhedoras.firebaseapp.com",
   projectId: "controle-colhedoras",
@@ -25,5 +24,3 @@ const firebaseConfig = {
   appId: "1:686733003266:web:c8f78b97163d9f8cc1b51b"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
