@@ -9,7 +9,7 @@
     --green-300: #86efac;
     --green-400: #4ade80;
     --green-500: #22c55e;
-    --green-600: #9e16a3;
+    --green-600: #16a34a;
     --green-700: #15803d;
     --green-800: #166534;
     --green-900: #14532d;
@@ -198,7 +198,7 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 36, 36, 0.2);
     padding: 6px 10px;
     border-radius: var(--radius-full);
     font-size: var(--font-size-xs);
