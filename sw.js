@@ -1,13 +1,19 @@
-const CACHE_NAME = 'colhedoras-v6';
+const CACHE_NAME = 'colhedoras-v7';
 
 // Caminhos relativos ao local do sw.js: funcionam na raiz do domínio
 // e em subdiretórios (ex.: GitHub Pages em /Capacidade-Produtiva/)
 const STATIC_ASSETS = [
     './',
     './index.html',
+    './login.html',
+    './cadastro.html',
+    './admin.html',
     './style.css',
+    './auth.css',
     './script.js',
     './calculadoras.js',
+    './auth.js',
+    './firebase-config.js',
     './manifest.json',
     './icons/icon-192.png',
     './icons/icon-512.png'
@@ -38,6 +44,15 @@ self.addEventListener('activate', (event) => {
 
 // FETCH
 self.addEventListener('fetch', (event) => {
+    // Deixa o navegador cuidar diretamente de chamadas ao Firebase (login/banco de dados)
+    // e de qualquer requisição que não seja GET — o Cache API só suporta GET.
+    if (event.request.method !== 'GET' ||
+        event.request.url.includes('firestore.googleapis.com') ||
+        event.request.url.includes('identitytoolkit.googleapis.com') ||
+        event.request.url.includes('firebaseio.com')) {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then(response => {
             return response || fetch(event.request)

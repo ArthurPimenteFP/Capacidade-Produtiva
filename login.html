@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Entrar - Controle de Colhedoras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-card__header">
+                <div class="auth-card__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                </div>
+                <h1>Entrar</h1>
+                <p>Acesse sua conta do Controle de Colhedoras</p>
+            </div>
+
+            <p class="auth-error" id="login-error" role="alert"></p>
+
+            <form class="auth-form" id="login-form" autocomplete="on">
+                <div class="form-group">
+                    <label for="login-email">E-mail</label>
+                    <input type="email" id="login-email" placeholder="voce@exemplo.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="login-senha">Senha</label>
+                    <input type="password" id="login-senha" placeholder="Sua senha" required autocomplete="current-password" minlength="6">
+                </div>
+                <button type="submit" class="btn btn--primary auth-submit" id="login-btn">Entrar</button>
+            </form>
+
+            <p class="auth-switch">Ainda não tem conta? <a href="cadastro.html">Cadastre-se</a></p>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        (function () {
+            'use strict';
+            AppAuth.redirecionarSeLogado();
+
+            const form = document.getElementById('login-form');
+            const errorBox = document.getElementById('login-error');
+            const btn = document.getElementById('login-btn');
+
+            function mostrarErro(msg) {
+                errorBox.textContent = msg;
+                errorBox.classList.add('is-visible');
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                errorBox.classList.remove('is-visible');
+
+                const email = document.getElementById('login-email').value.trim();
+                const senha = document.getElementById('login-senha').value;
+
+                btn.disabled = true;
+                btn.textContent = 'Entrando...';
+
+                AppAuth.login(email, senha)
+                    .then(function () {
+                        window.location.href = 'index.html';
+                    })
+                    .catch(function (err) {
+                        mostrarErro(err.message);
+                        btn.disabled = false;
+                        btn.textContent = 'Entrar';
+                    });
+            });
+        })();
+    </script>
+</body>
+
+</html>

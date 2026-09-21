@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Painel Admin - Controle de Colhedoras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <div class="auth-loading-overlay" id="auth-loading">
+        <div class="auth-loading-overlay__spinner"></div>
+        <span>Verificando acesso...</span>
+    </div>
+
+    <div class="app-container" id="admin-container" style="display:none;">
+        <header class="app-header">
+            <div class="header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1>Painel Admin</h1>
+                <p class="header-subtitle">Usuários cadastrados</p>
+            </div>
+            <div class="user-bar">
+                <span class="user-bar__name" id="user-name-label"></span>
+                <a href="index.html" class="user-bar__btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    App
+                </a>
+                <button type="button" class="user-bar__btn" id="btn-logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sair
+                </button>
+            </div>
+        </header>
+
+        <div class="admin-page">
+            <p class="auth-error" id="admin-error" role="alert"></p>
+            <div class="admin-table-wrap">
+                <table class="admin-table" id="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>E-mail</th>
+                            <th>Cadastrado em</th>
+                            <th>Função</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body"></tbody>
+                </table>
+                <div class="admin-empty" id="admin-empty" hidden>Nenhum usuário cadastrado ainda.</div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast">
+            <span class="toast__message" id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            const overlay = document.getElementById('auth-loading');
+            const container = document.getElementById('admin-container');
+            const tbody = document.getElementById('admin-table-body');
+            const emptyMsg = document.getElementById('admin-empty');
+            const errorBox = document.getElementById('admin-error');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            let toastTimeout = null;
+            let meUid = null;
+
+            function showToast(msg) {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastMessage.textContent = msg;
+                toast.className = 'toast toast--visible';
+                toastTimeout = setTimeout(function () { toast.className = 'toast'; }, 2500);
+            }
+
+            function formatarData(ts) {
+                if (!ts || !ts.toDate) return '—';
+                try {
+                    return ts.toDate().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                } catch (e) { return '—'; }
+            }
+
+            function renderUsuarios(snapshot) {
+                tbody.innerHTML = '';
+                if (snapshot.empty) {
+                    emptyMsg.hidden = false;
+                    return;
+                }
+                emptyMsg.hidden = true;
+
+                snapshot.forEach(function (doc) {
+                    const u = doc.data();
+                    const uid = doc.id;
+                    const isSelf = uid === meUid;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML =
+                        '<td>' + (u.name || '—') + (isSelf ? ' <span style="color:var(--color-text-secondary);font-size:12px;">(você)</span>' : '') + '</td>' +
+                        '<td>' + (u.email || '—') + '</td>' +
+                        '<td>' + formatarData(u.createdAt) + '</td>' +
+                        '<td><span class="admin-role-badge admin-role-badge--' + (u.role === 'admin' ? 'admin' : 'user') + '">' + (u.role === 'admin' ? 'Admin' : 'Usuário') + '</span></td>' +
+                        '<td></td>';
+
+                    const tdAcao = tr.lastElementChild;
+                    if (!isSelf) {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn--secondary';
+                        btn.style.padding = '4px 10px';
+                        btn.style.fontSize = '12px';
+                        btn.textContent = u.role === 'admin' ? 'Remover admin' : 'Tornar admin';
+                        btn.addEventListener('click', function () {
+                            alternarRole(uid, u.role === 'admin' ? 'user' : 'admin');
+                        });
+                        tdAcao.appendChild(btn);
+                    }
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function alternarRole(uid, novoRole) {
+                AppAuth.db.collection('users').doc(uid).update({ role: novoRole })
+                    .then(function () {
+                        showToast('Função atualizada com sucesso!');
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        showToast('Erro ao atualizar função.');
+                    });
+            }
+
+            AppAuth.exigirAdmin(function (perfil) {
+                meUid = perfil.uid;
+                document.getElementById('user-name-label').textContent = perfil.name;
+                overlay.style.display = 'none';
+                container.style.display = '';
+
+                AppAuth.db.collection('users').orderBy('createdAt', 'desc').onSnapshot(
+                    renderUsuarios,
+                    function (err) {
+                        console.error(err);
+                        errorBox.textContent = 'Não foi possível carregar a lista de usuários.';
+                        errorBox.classList.add('is-visible');
+                    }
+                );
+            });
+
+            document.getElementById('btn-logout').addEventListener('click', function () {
+                AppAuth.logout().then(function () { window.location.href = 'login.html'; });
+            });
+        })();
+    </script>
+</body>
+
+</html>

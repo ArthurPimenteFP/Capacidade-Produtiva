@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore para o app "Controle de Colhedoras"
+// Cole este conteúdo em: Firebase Console > Firestore Database > Regras
+//
+// O que estas regras garantem:
+// - Cada pessoa só lê e escreve os PRÓPRIOS dados de colhedoras (coleção "userdata")
+// - Ninguém consegue ler os dados de outra pessoa, exceto administradores
+// - Só um administrador pode transformar outro usuário em administrador
+// - Qualquer visitante sem login é bloqueado (require auth != null em tudo)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaLogado() {
+      return request.auth != null;
+    }
+
+    function ehAdmin() {
+      return estaLogado() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Perfis dos usuários (nome, e-mail, role)
+    match /users/{userId} {
+      allow read: if estaLogado() && (request.auth.uid == userId || ehAdmin());
+      allow create: if estaLogado() && request.auth.uid == userId
+                    && request.resource.data.role == 'user'; // ninguém se autopromove a admin no cadastro
+      allow update: if estaLogado() && (
+                      (request.auth.uid == userId && request.resource.data.role == resource.data.role) ||
+                      ehAdmin()
+                    );
+      allow delete: if ehAdmin();
+    }
+
+    // Dados de colhedoras/cálculos de cada usuário
+    match /userdata/{userId} {
+      allow read, write: if estaLogado() && (request.auth.uid == userId || ehAdmin());
+    }
+  }
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Criar conta - Controle de Colhedoras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-card__header">
+                <div class="auth-card__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg>
+                </div>
+                <h1>Criar conta</h1>
+                <p>Cadastre-se para usar o Controle de Colhedoras</p>
+            </div>
+
+            <p class="auth-error" id="cadastro-error" role="alert"></p>
+
+            <form class="auth-form" id="cadastro-form" autocomplete="on">
+                <div class="form-group">
+                    <label for="cad-nome">Nome completo</label>
+                    <input type="text" id="cad-nome" placeholder="Seu nome" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label for="cad-email">E-mail</label>
+                    <input type="email" id="cad-email" placeholder="voce@exemplo.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="cad-senha">Senha</label>
+                    <input type="password" id="cad-senha" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="cad-senha2">Confirmar senha</label>
+                    <input type="password" id="cad-senha2" placeholder="Repita a senha" required autocomplete="new-password" minlength="6">
+                </div>
+                <button type="submit" class="btn btn--primary auth-submit" id="cadastro-btn">Criar conta</button>
+            </form>
+
+            <p class="auth-switch">Já tem conta? <a href="login.html">Entrar</a></p>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        (function () {
+            'use strict';
+            AppAuth.redirecionarSeLogado();
+
+            const form = document.getElementById('cadastro-form');
+            const errorBox = document.getElementById('cadastro-error');
+            const btn = document.getElementById('cadastro-btn');
+
+            function mostrarErro(msg) {
+                errorBox.textContent = msg;
+                errorBox.classList.add('is-visible');
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                errorBox.classList.remove('is-visible');
+
+                const nome = document.getElementById('cad-nome').value.trim();
+                const email = document.getElementById('cad-email').value.trim();
+                const senha = document.getElementById('cad-senha').value;
+                const senha2 = document.getElementById('cad-senha2').value;
+
+                if (!nome) {
+                    mostrarErro('Informe seu nome.');
+                    return;
+                }
+                if (senha.length < 6) {
+                    mostrarErro('A senha precisa ter pelo menos 6 caracteres.');
+                    return;
+                }
+                if (senha !== senha2) {
+                    mostrarErro('As senhas não coincidem.');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = 'Criando conta...';
+
+                AppAuth.registrar(nome, email, senha)
+                    .then(function () {
+                        // Acesso liberado imediatamente após o cadastro
+                        window.location.href = 'index.html';
+                    })
+                    .catch(function (err) {
+                        mostrarErro(err.message);
+                        btn.disabled = false;
+                        btn.textContent = 'Criar conta';
+                    });
+            });
+        })();
+    </script>
+</body>
+
+</html>
