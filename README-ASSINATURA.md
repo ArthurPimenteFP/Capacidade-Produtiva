@@ -1,7 +1,13 @@
 # Configurando as assinaturas (Mercado Pago + Cloud Functions)
 
-Agora o app só libera o acesso pra quem tem assinatura ativa (R$ 19,90/mês,
-cobrança recorrente pelo Mercado Pago). Só administradores entram sem pagar.
+O app libera acesso em 3 situações:
+
+1. **Teste grátis de 5 dias**, automático no cadastro, sem pedir cartão.
+2. **Cartão**: R$ 9,90/mês, cobrança recorrente pelo Mercado Pago.
+3. **Pix**: R$ 49,90 pagamento único, dá acesso por 3 meses (sem renovação
+   automática — ao vencer, a pessoa paga de novo ou muda pro cartão).
+
+Administradores sempre têm acesso, sem pagar.
 
 ## Antes de começar
 
@@ -58,8 +64,9 @@ firebase deploy --only functions
 ```
 
 Isso pode levar alguns minutos na primeira vez. Ao final, o terminal mostra
-as URLs das 3 funções criadas (`criarAssinatura`, `cancelarAssinatura`,
-`webhookMercadoPago`). Copie a URL da **`webhookMercadoPago`** — algo como:
+as URLs das funções criadas (`criarAssinatura`, `criarPagamentoPix`,
+`consultarStatusPix`, `cancelarAssinatura`, `webhookMercadoPago`,
+`expirarPix`). Copie a URL da **`webhookMercadoPago`** — algo como:
 
 ```
 https://southamerica-east1-controle-colhedoras.cloudfunctions.net/webhookMercadoPago
@@ -70,8 +77,16 @@ https://southamerica-east1-controle-colhedoras.cloudfunctions.net/webhookMercado
 1. Volte em https://www.mercadopago.com.br/developers/panel/app, abra sua
    aplicação, vá em **"Webhooks"**.
 2. Cole a URL copiada no Passo 4.
-3. Marque o evento **"Assinaturas"** (subscription_preapproval / preapproval).
+3. Marque **os dois eventos**: **"Assinaturas"** (subscription_preapproval /
+   preapproval) — usado pelo cartão — e **"Pagamentos"** (payment) — usado
+   pelo Pix.
 4. Salve.
+
+⚠️ A função `expirarPix` roda 1x por dia sozinha (Cloud Scheduler) e revoga
+o acesso de quem pagou Pix e passou dos 3 meses. Na primeira execução, se o
+Firestore pedir um índice composto (aparece um link no log da função), basta
+clicar no link e depois em "Criar índice" — é automático, só precisa ser
+feito uma vez.
 
 Isso é o que permite que, assim que alguém pagar, o Firestore seja
 atualizado automaticamente e a pessoa ganhe acesso na hora (sem precisar
@@ -99,15 +114,24 @@ Rules > Publish, como você já fez antes.)
 5. Depois de "pagar", volte pro app — o acesso deve liberar sozinho em
    poucos segundos (o app fica ouvindo o Firestore em tempo real).
 
-## Ajustando o preço
+## Ajustando preços e duração do teste
 
-Abra `functions/index.js` e mude a linha:
+Em `functions/index.js`:
 
 ```js
-const VALOR_MENSAL = 19.9;
+const VALOR_MENSAL = 9.9;             // cartão, por mês
+const VALOR_PIX_TRIMESTRE = 49.9;     // Pix, pagamento único
+const DIAS_PIX_TRIMESTRE = 90;        // dias de acesso que o Pix libera
 ```
 
-Depois rode `firebase deploy --only functions` de novo para aplicar.
+Em `auth.js`:
+
+```js
+const DIAS_TESTE_GRATIS = 5;
+```
+
+Depois rode `firebase deploy --only functions` (e reenvie os arquivos do
+front-end) para aplicar.
 
 ## Como você (admin) sempre tem acesso
 
@@ -117,7 +141,23 @@ não precisa pagar a si mesmo.
 
 ## Como cancelar/reembolsar manualmente um usuário
 
-Você pode gerenciar assinaturas ativas direto no painel do Mercado Pago
+Você pode gerenciar assinaturas de cartão direto no painel do Mercado Pago
 (https://www.mercadopago.com.br/subscriptions), ou, para revogar o acesso no
 app imediatamente sem esperar o Mercado Pago, edite o documento da pessoa em
-Firestore Database > `users` > campo `plan` para `"none"`.
+Firestore Database > `users` > campo `plan` para `"free"`.
+
+Para quem pagou via Pix, não existe assinatura pra cancelar no Mercado Pago
+(foi um pagamento avulso) — pra revogar o acesso antes da data, edite o
+mesmo campo `plan` para `"free"`, ou mude `planExpiraEm` para uma data
+passada.
+
+## Resumo das perguntas mais comuns
+
+- **Dá trabalho cancelar assinatura / descadastrar cartão?** Não. O número
+  do cartão nunca passa pelo seu app — fica só com o Mercado Pago. O botão
+  "Cancelar assinatura" chama a função `cancelarAssinatura`, que já para a
+  cobrança na hora, sem você precisar mexer em nada.
+- **O teste grátis pede cartão?** Não. É controlado só pelo Firestore
+  (campo `trialEnd`), liberado automaticamente no cadastro.
+- **O Pix tem "cartão" pra cancelar?** Não existe — é um pagamento único.
+  Ao vencer os 3 meses, o acesso é revogado sozinho pela função `expirarPix`.

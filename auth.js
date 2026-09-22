@@ -39,18 +39,26 @@
         return map[err.code] || ('Erro: ' + (err.message || 'não foi possível completar a ação.'));
     }
 
+    // Duração do teste grátis (em dias). Não exige cartão: é controlado
+    // só pelo Firestore, a partir da data de cadastro.
+    const DIAS_TESTE_GRATIS = 5;
+
     // --- Cadastro de novo usuário comum ---
-    // "plan: none" = ainda não assinou. O acesso só é liberado quando o
-    // Mercado Pago confirmar o pagamento (feito pelas Cloud Functions).
+    // "plan: trial" = dentro do período de teste grátis (5 dias, sem cartão).
+    // "trialEnd" trava a data em que o teste acaba; depois disso o acesso só
+    // volta quando o Mercado Pago confirmar um pagamento (Cloud Functions).
     function registrar(nome, email, senha) {
         return auth.createUserWithEmailAndPassword(email, senha)
             .then(function (cred) {
+                const agora = new Date();
+                const fimTeste = new Date(agora.getTime() + DIAS_TESTE_GRATIS * 24 * 60 * 60 * 1000);
                 return db.collection('users').doc(cred.user.uid).set({
                     name: nome,
                     email: email,
                     role: 'user',
-                    plan: 'none',
-                    planStatus: 'none',
+                    plan: 'trial',
+                    planStatus: 'trial',
+                    trialEnd: firebase.firestore.Timestamp.fromDate(fimTeste),
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(function () {
                     return cred.user.updateProfile({ displayName: nome });
@@ -121,10 +129,36 @@
         });
     }
 
-    // --- Protege o app: exige login E assinatura ativa (admin sempre passa) ---
+    // --- Calcula quantos dias faltam do teste grátis (0 se já acabou) ---
+    function diasRestantesTeste(perfil) {
+        if (!perfil.trialEnd) return 0;
+        const fim = perfil.trialEnd.toDate ? perfil.trialEnd.toDate() : new Date(perfil.trialEnd);
+        const ms = fim.getTime() - Date.now();
+        return ms > 0 ? Math.ceil(ms / (24 * 60 * 60 * 1000)) : 0;
+    }
+
+    // --- Diz se o acesso está liberado agora (teste grátis ainda no prazo,
+    // Pix ainda dentro da validade de 3 meses, ou assinatura recorrente ativa) ---
+    function acessoLiberado(perfil) {
+        if (perfil.role === 'admin') return true;
+        if (perfil.plan === 'trial') return diasRestantesTeste(perfil) > 0;
+        if (perfil.plan === 'premium') {
+            // Assinaturas via Pix têm data de expiração (planExpiraEm); via
+            // cartão (recorrente) esse campo não existe e o acesso segue até
+            // o Mercado Pago avisar o webhook de um cancelamento.
+            if (perfil.planExpiraEm) {
+                const fim = perfil.planExpiraEm.toDate ? perfil.planExpiraEm.toDate() : new Date(perfil.planExpiraEm);
+                return fim.getTime() > Date.now();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // --- Protege o app: exige login E acesso liberado (teste, Pix ou cartão) ---
     function exigirAssinaturaAtiva(callback) {
         exigirLogin(function (perfil) {
-            if (perfil.role === 'admin' || perfil.plan === 'premium') {
+            if (acessoLiberado(perfil)) {
                 callback(perfil);
             } else {
                 window.location.href = 'planos.html';
@@ -151,6 +185,8 @@
         exigirLogin: exigirLogin,
         exigirAdmin: exigirAdmin,
         exigirAssinaturaAtiva: exigirAssinaturaAtiva,
-        redirecionarSeLogado: redirecionarSeLogado
+        redirecionarSeLogado: redirecionarSeLogado,
+        diasRestantesTeste: diasRestantesTeste,
+        acessoLiberado: acessoLiberado
     };
 })();

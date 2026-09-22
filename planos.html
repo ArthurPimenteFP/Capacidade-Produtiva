@@ -31,27 +31,56 @@
 
             <p class="auth-error" id="planos-error" role="alert"></p>
 
-            <!-- Estado: nunca assinou / assinatura cancelada -->
+            <!-- Estado: ainda dentro do teste grátis -->
+            <p id="aviso-teste" hidden style="text-align:center; font-size:var(--font-size-sm); color:var(--color-text-secondary); margin-bottom:var(--space-lg);">
+                Você ainda tem <strong id="dias-restantes">-</strong> dia(s) de teste grátis. Pode assinar quando quiser, não precisa esperar acabar.
+            </p>
+
+            <!-- Estado: nunca assinou / teste acabou / assinatura cancelada -->
             <div id="bloco-assinar">
-                <div class="admin-table-wrap" style="padding: var(--space-lg); margin-bottom: var(--space-lg);">
-                    <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:var(--space-md);">
-                        <span style="font-size:2rem; font-weight:800; color:var(--color-primary);">R$ 19,90</span>
-                        <span style="color:var(--color-text-secondary);">/ mês</span>
-                    </div>
-                    <ul style="margin:0; padding-left:1.1rem; color:var(--color-text-secondary); font-size:var(--font-size-sm); display:flex; flex-direction:column; gap:6px;">
-                        <li>Cadastro ilimitado de colhedoras</li>
-                        <li>Calculadora de Capacidade Produtiva</li>
-                        <li>Calculadora de Tempo de Colheita</li>
-                        <li>Seus dados salvos e sincronizados na nuvem</li>
-                    </ul>
+                <div class="admin-table-wrap" style="padding: var(--space-lg); margin-bottom: var(--space-lg); display:flex; flex-direction:column; gap:12px;">
+                    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                        <input type="radio" name="forma-pagamento" value="cartao" checked style="margin-top:4px;">
+                        <span>
+                            <span style="display:flex; align-items:baseline; gap:6px;">
+                                <strong style="font-size:1.4rem; color:var(--color-primary);">R$ 9,90</strong>
+                                <span style="color:var(--color-text-secondary); font-size:var(--font-size-sm);">/ mês no cartão</span>
+                            </span>
+                            <span style="display:block; color:var(--color-text-secondary); font-size:var(--font-size-xs);">Cobrança recorrente automática. Cancele quando quiser.</span>
+                        </span>
+                    </label>
+                    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                        <input type="radio" name="forma-pagamento" value="pix" style="margin-top:4px;">
+                        <span>
+                            <span style="display:flex; align-items:baseline; gap:6px;">
+                                <strong style="font-size:1.4rem; color:var(--color-primary);">R$ 49,90</strong>
+                                <span style="color:var(--color-text-secondary); font-size:var(--font-size-sm);">no Pix (3 meses)</span>
+                            </span>
+                            <span style="display:block; color:var(--color-text-secondary); font-size:var(--font-size-xs);">Pagamento único, sem renovação automática. Ao vencer, é só pagar de novo.</span>
+                        </span>
+                    </label>
                 </div>
-                <button type="button" class="btn btn--primary auth-submit" id="btn-assinar">Assinar com Mercado Pago</button>
-                <p style="text-align:center; font-size:var(--font-size-xs); color:var(--color-text-secondary); margin-top:var(--space-md);">
-                    Pagamento processado pelo Mercado Pago (Pix, boleto ou cartão). Cobrança recorrente mensal, cancele quando quiser.
-                </p>
+                <ul style="margin:0 0 var(--space-lg); padding-left:1.1rem; color:var(--color-text-secondary); font-size:var(--font-size-sm); display:flex; flex-direction:column; gap:6px;">
+                    <li>Cadastro ilimitado de colhedoras</li>
+                    <li>Calculadora de Capacidade Produtiva</li>
+                    <li>Calculadora de Tempo de Colheita</li>
+                    <li>Seus dados salvos e sincronizados na nuvem</li>
+                </ul>
+                <button type="button" class="btn btn--primary auth-submit" id="btn-assinar">Continuar</button>
             </div>
 
-            <!-- Estado: pagamento em análise -->
+            <!-- Estado: QR code do Pix gerado, aguardando pagamento -->
+            <div id="bloco-pix" hidden style="text-align:center;">
+                <p style="color:var(--color-text-secondary); font-size:var(--font-size-sm); margin-bottom:var(--space-md);">
+                    Escaneie o QR code no app do seu banco ou copie o código Pix abaixo.
+                </p>
+                <img id="pix-qr-img" alt="QR Code Pix" style="width:220px; height:220px; margin:0 auto var(--space-md); display:block; border-radius:8px;">
+                <textarea id="pix-copia-cola" readonly rows="3" style="width:100%; resize:none; font-size:var(--font-size-xs); margin-bottom:var(--space-md);"></textarea>
+                <button type="button" class="btn btn--secondary auth-submit" id="btn-copiar-pix">Copiar código Pix</button>
+                <p id="pix-status" style="margin-top:var(--space-md); color:var(--color-text-secondary); font-size:var(--font-size-sm);">Aguardando confirmação do pagamento...</p>
+            </div>
+
+            <!-- Estado: pagamento em análise (cartão) -->
             <div id="bloco-pendente" hidden>
                 <p style="color:var(--color-text-secondary); font-size:var(--font-size-sm); margin-bottom:var(--space-lg);">
                     Recebemos o início da sua assinatura, mas o pagamento ainda não foi confirmado pelo Mercado Pago.
@@ -62,11 +91,14 @@
 
             <!-- Estado: assinatura ativa (usuário chegou aqui pra gerenciar) -->
             <div id="bloco-ativo" hidden>
-                <p style="color:var(--color-text-secondary); font-size:var(--font-size-sm); margin-bottom:var(--space-lg);">
+                <p style="color:var(--color-text-secondary); font-size:var(--font-size-sm); margin-bottom:var(--space-lg);" id="texto-ativo">
                     ✅ Sua assinatura está ativa. Você tem acesso completo ao app.
                 </p>
                 <a href="index.html" class="btn btn--primary auth-submit" style="text-decoration:none; text-align:center;">Voltar para o app</a>
                 <button type="button" class="btn btn--secondary auth-submit" id="btn-cancelar" style="margin-top:var(--space-md);">Cancelar assinatura</button>
+                <p id="aviso-sem-cancelar" hidden style="text-align:center; font-size:var(--font-size-xs); color:var(--color-text-secondary); margin-top:var(--space-md);">
+                    Pagamento via Pix não tem renovação automática — não há nada para cancelar. O acesso vale até a data contratada.
+                </p>
             </div>
 
             <p class="auth-switch"><a href="#" id="link-sair">Sair da conta</a></p>
@@ -90,12 +122,17 @@
             const overlay = document.getElementById('auth-loading');
             const container = document.getElementById('planos-container');
             const errorBox = document.getElementById('planos-error');
+            const avisoTeste = document.getElementById('aviso-teste');
+            const diasRestantesEl = document.getElementById('dias-restantes');
             const blocoAssinar = document.getElementById('bloco-assinar');
+            const blocoPix = document.getElementById('bloco-pix');
             const blocoPendente = document.getElementById('bloco-pendente');
             const blocoAtivo = document.getElementById('bloco-ativo');
+            const textoAtivo = document.getElementById('texto-ativo');
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
             let toastTimeout = null;
+            let intervaloPix = null;
 
             function showToast(msg) {
                 if (toastTimeout) clearTimeout(toastTimeout);
@@ -109,25 +146,49 @@
                 errorBox.classList.add('is-visible');
             }
 
+            function pararPolling() {
+                if (intervaloPix) { clearInterval(intervaloPix); intervaloPix = null; }
+            }
+
             function atualizarTela(perfil) {
                 blocoAssinar.hidden = true;
+                blocoPix.hidden = true;
                 blocoPendente.hidden = true;
                 blocoAtivo.hidden = true;
+                avisoTeste.hidden = true;
+                pararPolling();
 
-                if (perfil.role === 'admin' || perfil.plan === 'premium') {
+                const liberado = AppAuth.acessoLiberado(perfil);
+
+                if (liberado) {
                     blocoAtivo.hidden = false;
+                    const btnCancelar = document.getElementById('btn-cancelar');
+                    const avisoSemCancelar = document.getElementById('aviso-sem-cancelar');
+                    const podecancelar = perfil.role !== 'admin' && perfil.plan !== 'trial' && perfil.planStatus !== 'pix';
+                    btnCancelar.hidden = !podecancelar;
+                    avisoSemCancelar.hidden = podecancelar || perfil.role === 'admin' || perfil.plan === 'trial';
+
+                    if (perfil.role === 'admin') {
+                        textoAtivo.textContent = '✅ Acesso de administrador.';
+                    } else if (perfil.plan === 'trial') {
+                        textoAtivo.textContent = '✅ Você está no teste grátis (' + AppAuth.diasRestantesTeste(perfil) + ' dia(s) restante(s)).';
+                    } else if (perfil.planStatus === 'pix') {
+                        textoAtivo.textContent = '✅ Assinatura ativa via Pix.';
+                    } else {
+                        textoAtivo.textContent = '✅ Sua assinatura está ativa. Você tem acesso completo ao app.';
+                    }
                 } else if (perfil.planStatus === 'pending') {
                     blocoPendente.hidden = false;
                 } else {
                     blocoAssinar.hidden = false;
+                    if (perfil.plan === 'trial') {
+                        avisoTeste.hidden = false;
+                        diasRestantesEl.textContent = AppAuth.diasRestantesTeste(perfil);
+                    }
                 }
             }
 
-            function iniciarAssinatura(botao) {
-                if (!AppAuth.functions) {
-                    mostrarErro('Erro de configuração: Cloud Functions não carregou.');
-                    return;
-                }
+            function iniciarAssinaturaCartao(botao) {
                 const textoOriginal = botao.textContent;
                 botao.disabled = true;
                 botao.textContent = 'Preparando pagamento...';
@@ -144,11 +205,60 @@
                 });
             }
 
+            function iniciarPagamentoPix(botao) {
+                const textoOriginal = botao.textContent;
+                botao.disabled = true;
+                botao.textContent = 'Gerando QR code...';
+                errorBox.classList.remove('is-visible');
+
+                const criarPagamentoPix = AppAuth.functions.httpsCallable('criarPagamentoPix');
+                criarPagamentoPix().then(function (resultado) {
+                    const dados = resultado.data;
+                    document.getElementById('pix-qr-img').src = 'data:image/png;base64,' + dados.qrCodeBase64;
+                    document.getElementById('pix-copia-cola').value = dados.qrCode;
+                    blocoAssinar.hidden = true;
+                    blocoPix.hidden = false;
+                    botao.disabled = false;
+                    botao.textContent = textoOriginal;
+
+                    const consultarStatusPix = AppAuth.functions.httpsCallable('consultarStatusPix');
+                    intervaloPix = setInterval(function () {
+                        consultarStatusPix({ paymentId: dados.paymentId }).then(function (r) {
+                            if (r.data.status === 'approved') {
+                                pararPolling();
+                                document.getElementById('pix-status').textContent = 'Pagamento confirmado! Liberando acesso...';
+                            }
+                        }).catch(function (err) { console.error(err); });
+                    }, 4000);
+                }).catch(function (err) {
+                    console.error(err);
+                    mostrarErro(err.message || 'Não foi possível gerar o Pix. Tente novamente.');
+                    botao.disabled = false;
+                    botao.textContent = textoOriginal;
+                });
+            }
+
             document.getElementById('btn-assinar').addEventListener('click', function () {
-                iniciarAssinatura(this);
+                if (!AppAuth.functions) {
+                    mostrarErro('Erro de configuração: Cloud Functions não carregou.');
+                    return;
+                }
+                const forma = document.querySelector('input[name="forma-pagamento"]:checked').value;
+                if (forma === 'pix') {
+                    iniciarPagamentoPix(this);
+                } else {
+                    iniciarAssinaturaCartao(this);
+                }
             });
             document.getElementById('btn-assinar-de-novo').addEventListener('click', function () {
-                iniciarAssinatura(this);
+                iniciarAssinaturaCartao(this);
+            });
+            document.getElementById('btn-copiar-pix').addEventListener('click', function () {
+                const campo = document.getElementById('pix-copia-cola');
+                campo.select();
+                navigator.clipboard.writeText(campo.value).then(function () {
+                    showToast('Código Pix copiado!');
+                }).catch(function () { showToast('Não foi possível copiar automaticamente. Selecione e copie manualmente.'); });
             });
 
             document.getElementById('btn-cancelar').addEventListener('click', function () {

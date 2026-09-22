@@ -49,6 +49,7 @@
                             <th>Nome</th>
                             <th>E-mail</th>
                             <th>Cadastrado em</th>
+                            <th>Plano</th>
                             <th>Função</th>
                             <th>Ação</th>
                         </tr>
@@ -97,6 +98,40 @@
                 } catch (e) { return '—'; }
             }
 
+            // --- Classifica o plano do usuário em um badge (trial/pix/cartão/etc) ---
+            function classificarPlano(u) {
+                const plan = u.plan || 'none';
+                const status = u.planStatus || '';
+
+                if (plan === 'trial') {
+                    const dias = AppAuth.diasRestantesTeste(u);
+                    return {
+                        classe: 'trial',
+                        label: 'Teste grátis',
+                        sub: dias > 0 ? (dias + (dias === 1 ? ' dia restante' : ' dias restantes')) : 'expirado'
+                    };
+                }
+
+                if (plan === 'premium' && status === 'pix') {
+                    const fim = u.planExpiraEm ? formatarData(u.planExpiraEm) : '—';
+                    return { classe: 'pix', label: 'Pix', sub: 'expira em ' + fim };
+                }
+
+                if (plan === 'premium') {
+                    return { classe: 'cartao', label: 'Cartão', sub: 'assinatura recorrente' };
+                }
+
+                if (status === 'pending' || status === 'pix_pendente') {
+                    return { classe: 'pendente', label: 'Pendente', sub: status === 'pix_pendente' ? 'aguardando Pix' : 'aguardando cartão' };
+                }
+
+                if (status === 'cancelled' || status === 'expirado') {
+                    return { classe: 'cancelado', label: status === 'expirado' ? 'Expirado' : 'Cancelado', sub: '' };
+                }
+
+                return { classe: 'sem-plano', label: 'Sem plano', sub: '' };
+            }
+
             function renderUsuarios(snapshot) {
                 tbody.innerHTML = '';
                 if (snapshot.empty) {
@@ -109,11 +144,14 @@
                     const u = doc.data();
                     const uid = doc.id;
                     const isSelf = uid === meUid;
+                    const planoInfo = classificarPlano(u);
                     const tr = document.createElement('tr');
                     tr.innerHTML =
                         '<td>' + (u.name || '—') + (isSelf ? ' <span style="color:var(--color-text-secondary);font-size:12px;">(você)</span>' : '') + '</td>' +
                         '<td>' + (u.email || '—') + '</td>' +
                         '<td>' + formatarData(u.createdAt) + '</td>' +
+                        '<td><span class="admin-plan-badge admin-plan-badge--' + planoInfo.classe + '">' + planoInfo.label + '</span>' +
+                        (planoInfo.sub ? '<span class="admin-plan-sub">' + planoInfo.sub + '</span>' : '') + '</td>' +
                         '<td><span class="admin-role-badge admin-role-badge--' + (u.role === 'admin' ? 'admin' : 'user') + '">' + (u.role === 'admin' ? 'Admin' : 'Usuário') + '</span></td>' +
                         '<td></td>';
 

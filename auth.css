@@ -244,3 +244,51 @@
     text-align: center;
     color: var(--color-text-secondary);
 }
+
+.admin-plan-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.admin-plan-badge--trial {
+    background: var(--amber-50);
+    color: #92400e;
+}
+
+.admin-plan-badge--pix {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.admin-plan-badge--cartao {
+    background: var(--color-primary-light);
+    color: var(--color-primary-hover);
+}
+
+.admin-plan-badge--pendente {
+    background: var(--amber-50);
+    color: var(--amber-500);
+}
+
+.admin-plan-badge--cancelado {
+    background: var(--color-danger-light);
+    color: var(--color-danger-hover);
+}
+
+.admin-plan-badge--sem-plano {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+
+.admin-plan-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
