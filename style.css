@@ -39,8 +39,7 @@
     --black: #000000;
 
     /* Semantic Colors */
-    --color-primary: var(--green-600);
-    --color-primary-light: var(--green-50);
+--color-primary: #e91e63; /* rosa, só para teste */    --color-primary-light: var(--green-50);
     --color-primary-hover: var(--green-700);
     --color-surface: var(--white);
     --color-background: var(--gray-50);
