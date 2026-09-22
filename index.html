@@ -55,6 +55,10 @@
             </div>
             <div class="user-bar">
                 <span class="user-bar__name" id="user-name-label"></span>
+                <a href="planos.html" class="user-bar__btn" id="plano-link" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9M14 17H5M17 3v18M7 3v18"/></svg>
+                    Assinatura
+                </a>
                 <a href="admin.html" class="user-bar__btn user-bar__btn--admin" id="admin-link">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     Admin
@@ -480,11 +484,14 @@
         // Exige login para ver o app. Só libera a tela depois de confirmar o usuário.
         (function () {
             'use strict';
-            AppAuth.exigirLogin(function (perfil) {
+            AppAuth.exigirAssinaturaAtiva(function (perfil) {
                 window.currentUser = perfil;
                 document.getElementById('user-name-label').textContent = perfil.name;
                 if (perfil.role === 'admin') {
                     document.getElementById('admin-link').style.display = 'inline-flex';
+                }
+                if (perfil.plan === 'premium') {
+                    document.getElementById('plano-link').style.display = 'inline-flex';
                 }
                 document.getElementById('auth-loading').style.display = 'none';
                 document.getElementById('app-container').style.display = '';

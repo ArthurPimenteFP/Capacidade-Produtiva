@@ -21,13 +21,23 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Perfis dos usuários (nome, e-mail, role)
+    // Campos que o próprio usuário NUNCA pode alterar sozinho (só admin ou as
+    // Cloud Functions de assinatura, que usam o Admin SDK e ignoram estas regras)
+    function camposProtegidosMantidos() {
+      return request.resource.data.role == resource.data.role &&
+             request.resource.data.plan == resource.data.plan &&
+             request.resource.data.get('subscriptionId', null) == resource.data.get('subscriptionId', null) &&
+             request.resource.data.get('planStatus', null) == resource.data.get('planStatus', null);
+    }
+
+    // Perfis dos usuários (nome, e-mail, role, plano)
     match /users/{userId} {
       allow read: if estaLogado() && (request.auth.uid == userId || ehAdmin());
       allow create: if estaLogado() && request.auth.uid == userId
-                    && request.resource.data.role == 'user'; // ninguém se autopromove a admin no cadastro
+                    && request.resource.data.role == 'user'
+                    && request.resource.data.plan == 'none'; // ninguém entra já com acesso liberado ou como admin
       allow update: if estaLogado() && (
-                      (request.auth.uid == userId && request.resource.data.role == resource.data.role) ||
+                      (request.auth.uid == userId && camposProtegidosMantidos()) ||
                       ehAdmin()
                     );
       allow delete: if ehAdmin();

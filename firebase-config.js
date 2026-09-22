@@ -10,17 +10,11 @@
 // A segurança real do banco de dados é feita pelas "Regras" do Firestore
 // (arquivo firestore.rules), não por esconder este arquivo.
 
-// Import the functions you need from the SDKs you need
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBUVO32fUsugyMBPF-wXD_7E1l6Co3YDHE",
-  authDomain: "controle-colhedoras.firebaseapp.com",
-  projectId: "controle-colhedoras",
-  storageBucket: "controle-colhedoras.firebasestorage.app",
-  messagingSenderId: "686733003266",
-  appId: "1:686733003266:web:c8f78b97163d9f8cc1b51b"
+    apiKey: "COLE_AQUI_SUA_API_KEY",
+    authDomain: "SEU-PROJETO.firebaseapp.com",
+    projectId: "SEU-PROJETO",
+    storageBucket: "SEU-PROJETO.appspot.com",
+    messagingSenderId: "COLE_AQUI",
+    appId: "COLE_AQUI"
 };
-

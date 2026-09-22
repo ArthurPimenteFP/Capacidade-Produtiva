@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Assinatura - Controle de Colhedoras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <div class="auth-loading-overlay" id="auth-loading">
+        <div class="auth-loading-overlay__spinner"></div>
+        <span>Verificando sua conta...</span>
+    </div>
+
+    <div class="auth-page" id="planos-container" style="display:none;">
+        <div class="auth-card" style="max-width:440px;">
+            <div class="auth-card__header">
+                <div class="auth-card__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                </div>
+                <h1 id="planos-titulo">Assine para continuar</h1>
+                <p id="planos-subtitulo">Acesso completo ao Controle de Colhedoras</p>
+            </div>
+
+            <p class="auth-error" id="planos-error" role="alert"></p>
+
+            <!-- Estado: nunca assinou / assinatura cancelada -->
+            <div id="bloco-assinar">
+                <div class="admin-table-wrap" style="padding: var(--space-lg); margin-bottom: var(--space-lg);">
+                    <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:var(--space-md);">
+                        <span style="font-size:2rem; font-weight:800; color:var(--color-primary);">R$ 19,90</span>
+                        <span style="color:var(--color-text-secondary);">/ mês</span>
+                    </div>
+                    <ul style="margin:0; padding-left:1.1rem; color:var(--color-text-secondary); font-size:var(--font-size-sm); display:flex; flex-direction:column; gap:6px;">
+                        <li>Cadastro ilimitado de colhedoras</li>
+                        <li>Calculadora de Capacidade Produtiva</li>
+                        <li>Calculadora de Tempo de Colheita</li>
+                        <li>Seus dados salvos e sincronizados na nuvem</li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn--primary auth-submit" id="btn-assinar">Assinar com Mercado Pago</button>
+                <p style="text-align:center; font-size:var(--font-size-xs); color:var(--color-text-secondary); margin-top:var(--space-md);">
+                    Pagamento processado pelo Mercado Pago (Pix, boleto ou cartão). Cobrança recorrente mensal, cancele quando quiser.
+                </p>
+            </div>
+
+            <!-- Estado: pagamento em análise -->
+            <div id="bloco-pendente" hidden>
+                <p style="color:var(--color-text-secondary); font-size:var(--font-size-sm); margin-bottom:var(--space-lg);">
+                    Recebemos o início da sua assinatura, mas o pagamento ainda não foi confirmado pelo Mercado Pago.
+                    Se você fechou a página antes de terminar, finalize o pagamento novamente abaixo.
+                </p>
+                <button type="button" class="btn btn--primary auth-submit" id="btn-assinar-de-novo">Finalizar pagamento</button>
+            </div>
+
+            <!-- Estado: assinatura ativa (usuário chegou aqui pra gerenciar) -->
+            <div id="bloco-ativo" hidden>
+                <p style="color:var(--color-text-secondary); font-size:var(--font-size-sm); margin-bottom:var(--space-lg);">
+                    ✅ Sua assinatura está ativa. Você tem acesso completo ao app.
+                </p>
+                <a href="index.html" class="btn btn--primary auth-submit" style="text-decoration:none; text-align:center;">Voltar para o app</a>
+                <button type="button" class="btn btn--secondary auth-submit" id="btn-cancelar" style="margin-top:var(--space-md);">Cancelar assinatura</button>
+            </div>
+
+            <p class="auth-switch"><a href="#" id="link-sair">Sair da conta</a></p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span class="toast__message" id="toast-message"></span>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            const overlay = document.getElementById('auth-loading');
+            const container = document.getElementById('planos-container');
+            const errorBox = document.getElementById('planos-error');
+            const blocoAssinar = document.getElementById('bloco-assinar');
+            const blocoPendente = document.getElementById('bloco-pendente');
+            const blocoAtivo = document.getElementById('bloco-ativo');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            let toastTimeout = null;
+
+            function showToast(msg) {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastMessage.textContent = msg;
+                toast.className = 'toast toast--visible';
+                toastTimeout = setTimeout(function () { toast.className = 'toast'; }, 2500);
+            }
+
+            function mostrarErro(msg) {
+                errorBox.textContent = msg;
+                errorBox.classList.add('is-visible');
+            }
+
+            function atualizarTela(perfil) {
+                blocoAssinar.hidden = true;
+                blocoPendente.hidden = true;
+                blocoAtivo.hidden = true;
+
+                if (perfil.role === 'admin' || perfil.plan === 'premium') {
+                    blocoAtivo.hidden = false;
+                } else if (perfil.planStatus === 'pending') {
+                    blocoPendente.hidden = false;
+                } else {
+                    blocoAssinar.hidden = false;
+                }
+            }
+
+            function iniciarAssinatura(botao) {
+                if (!AppAuth.functions) {
+                    mostrarErro('Erro de configuração: Cloud Functions não carregou.');
+                    return;
+                }
+                const textoOriginal = botao.textContent;
+                botao.disabled = true;
+                botao.textContent = 'Preparando pagamento...';
+                errorBox.classList.remove('is-visible');
+
+                const criarAssinatura = AppAuth.functions.httpsCallable('criarAssinatura');
+                criarAssinatura().then(function (resultado) {
+                    window.location.href = resultado.data.checkoutUrl;
+                }).catch(function (err) {
+                    console.error(err);
+                    mostrarErro(err.message || 'Não foi possível iniciar o pagamento. Tente novamente.');
+                    botao.disabled = false;
+                    botao.textContent = textoOriginal;
+                });
+            }
+
+            document.getElementById('btn-assinar').addEventListener('click', function () {
+                iniciarAssinatura(this);
+            });
+            document.getElementById('btn-assinar-de-novo').addEventListener('click', function () {
+                iniciarAssinatura(this);
+            });
+
+            document.getElementById('btn-cancelar').addEventListener('click', function () {
+                if (!confirm('Tem certeza que deseja cancelar sua assinatura? Você perderá o acesso ao app.')) return;
+                const btn = this;
+                btn.disabled = true;
+                const cancelarAssinatura = AppAuth.functions.httpsCallable('cancelarAssinatura');
+                cancelarAssinatura().then(function () {
+                    showToast('Assinatura cancelada.');
+                }).catch(function (err) {
+                    console.error(err);
+                    showToast(err.message || 'Erro ao cancelar.');
+                    btn.disabled = false;
+                });
+            });
+
+            document.getElementById('link-sair').addEventListener('click', function (e) {
+                e.preventDefault();
+                AppAuth.logout().then(function () { window.location.href = 'login.html'; });
+            });
+
+            AppAuth.exigirLogin(function (perfil) {
+                overlay.style.display = 'none';
+                container.style.display = '';
+                atualizarTela(perfil);
+            });
+        })();
+    </script>
+</body>
+
+</html>

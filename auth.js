@@ -40,6 +40,8 @@
     }
 
     // --- Cadastro de novo usuário comum ---
+    // "plan: none" = ainda não assinou. O acesso só é liberado quando o
+    // Mercado Pago confirmar o pagamento (feito pelas Cloud Functions).
     function registrar(nome, email, senha) {
         return auth.createUserWithEmailAndPassword(email, senha)
             .then(function (cred) {
@@ -47,6 +49,8 @@
                     name: nome,
                     email: email,
                     role: 'user',
+                    plan: 'none',
+                    planStatus: 'none',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 }).then(function () {
                     return cred.user.updateProfile({ displayName: nome });
@@ -72,37 +76,36 @@
         return auth.signOut();
     }
 
-    // --- Busca o perfil (nome/role) do usuário logado no Firestore ---
+    // --- Busca o perfil (nome/role/plano) do usuário logado no Firestore ---
     function buscarPerfil(uid) {
         return db.collection('users').doc(uid).get().then(function (doc) {
             if (doc.exists) return doc.data();
-            return { name: '', role: 'user' };
+            return { name: '', role: 'user', plan: 'none', planStatus: 'none' };
         });
     }
 
     // --- Protege uma página: exige usuário logado. Redireciona se não estiver. ---
-    // callback(perfil) é chamado quando o usuário está confirmado.
+    // callback(perfil) é chamado sempre que o perfil mudar (em tempo real),
+    // o que permite o app liberar o acesso automaticamente assim que o
+    // pagamento for confirmado, sem precisar recarregar a página.
     function exigirLogin(callback) {
         auth.onAuthStateChanged(function (user) {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
-            buscarPerfil(user.uid).then(function (perfil) {
+            db.collection('users').doc(user.uid).onSnapshot(function (doc) {
+                const perfil = doc.exists ? doc.data() : {};
                 callback({
                     uid: user.uid,
                     email: user.email,
                     name: perfil.name || user.email,
-                    role: perfil.role || 'user'
+                    role: perfil.role || 'user',
+                    plan: perfil.plan || 'none',
+                    planStatus: perfil.planStatus || 'none'
                 });
-            }).catch(function (err) {
-                console.error('Erro ao buscar perfil:', err);
-                callback({
-                    uid: user.uid,
-                    email: user.email,
-                    name: user.email,
-                    role: 'user'
-                });
+            }, function (err) {
+                console.error('Erro ao observar perfil:', err);
             });
         });
     }
@@ -118,7 +121,19 @@
         });
     }
 
+    // --- Protege o app: exige login E assinatura ativa (admin sempre passa) ---
+    function exigirAssinaturaAtiva(callback) {
+        exigirLogin(function (perfil) {
+            if (perfil.role === 'admin' || perfil.plan === 'premium') {
+                callback(perfil);
+            } else {
+                window.location.href = 'planos.html';
+            }
+        });
+    }
+
     // --- Se o usuário já estiver logado e abrir login/cadastro, manda pro app ---
+    // (o próprio index.html decide se o mostra ou redireciona pra tela de assinatura)
     function redirecionarSeLogado() {
         auth.onAuthStateChanged(function (user) {
             if (user) window.location.href = 'index.html';
@@ -128,12 +143,14 @@
     window.AppAuth = {
         auth: auth,
         db: db,
+        functions: firebase.functions ? firebase.app().functions('southamerica-east1') : null,
         registrar: registrar,
         login: login,
         logout: logout,
         buscarPerfil: buscarPerfil,
         exigirLogin: exigirLogin,
         exigirAdmin: exigirAdmin,
+        exigirAssinaturaAtiva: exigirAssinaturaAtiva,
         redirecionarSeLogado: redirecionarSeLogado
     };
 })();

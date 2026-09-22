@@ -1,4 +1,4 @@
-const CACHE_NAME = 'colhedoras-v7';
+const CACHE_NAME = 'colhedoras-v8';
 
 // Caminhos relativos ao local do sw.js: funcionam na raiz do domínio
 // e em subdiretórios (ex.: GitHub Pages em /Capacidade-Produtiva/)
@@ -43,6 +43,10 @@ self.addEventListener('activate', (event) => {
 });
 
 // FETCH
+// Estratégia: NETWORK-FIRST. Sempre tenta buscar a versão mais recente na
+// internet primeiro; só usa a cópia salva (cache) se estiver offline.
+// Isso garante que qualquer atualização que você publicar no GitHub chega
+// pros usuários automaticamente, sem precisar lembrar de mudar nada aqui.
 self.addEventListener('fetch', (event) => {
     // Deixa o navegador cuidar diretamente de chamadas ao Firebase (login/banco de dados)
     // e de qualquer requisição que não seja GET — o Cache API só suporta GET.
@@ -54,23 +58,20 @@ self.addEventListener('fetch', (event) => {
     }
 
     event.respondWith(
-        caches.match(event.request).then(response => {
-            return response || fetch(event.request)
-                .then(fetchRes => {
-                    if (!fetchRes || fetchRes.status !== 200) return fetchRes;
-
+        fetch(event.request)
+            .then(fetchRes => {
+                if (fetchRes && fetchRes.status === 200) {
                     const clone = fetchRes.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, clone);
-                    });
-
-                    return fetchRes;
-                })
-                .catch(() => {
-                    if (event.request.mode === 'navigate') {
-                        return caches.match('./index.html');
-                    }
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return fetchRes;
+            })
+            .catch(() => {
+                // Sem internet: usa a última cópia salva
+                return caches.match(event.request).then(cached => {
+                    if (cached) return cached;
+                    if (event.request.mode === 'navigate') return caches.match('./index.html');
                 });
-        })
+            })
     );
 });
