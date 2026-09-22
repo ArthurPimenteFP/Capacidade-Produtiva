@@ -11,10 +11,10 @@
 // (arquivo firestore.rules), não por esconder este arquivo.
 
 window.FIREBASE_CONFIG = {
-    apiKey: "COLE_AQUI_SUA_API_KEY",
-    authDomain: "SEU-PROJETO.firebaseapp.com",
-    projectId: "SEU-PROJETO",
-    storageBucket: "SEU-PROJETO.appspot.com",
-    messagingSenderId: "COLE_AQUI",
-    appId: "COLE_AQUI"
+  apiKey: "AIzaSyBUVO32fUsugyMBPF-wXD_7E1l6Co3YDHE",
+  authDomain: "controle-colhedoras.firebaseapp.com",
+  projectId: "controle-colhedoras",
+  storageBucket: "controle-colhedoras.firebasestorage.app",
+  messagingSenderId: "686733003266",
+  appId: "1:686733003266:web:c8f78b97163d9f8cc1b51b"
 };
