@@ -137,6 +137,15 @@
         return ms > 0 ? Math.ceil(ms / (24 * 60 * 60 * 1000)) : 0;
     }
 
+    // --- Calcula quantos dias faltam pro Pix vencer (null se não estiver no
+    // plano Pix ou não tiver data de expiração; 0 se já venceu) ---
+    function diasRestantesPix(perfil) {
+        if (perfil.planStatus !== 'pix' || !perfil.planExpiraEm) return null;
+        const fim = perfil.planExpiraEm.toDate ? perfil.planExpiraEm.toDate() : new Date(perfil.planExpiraEm);
+        const ms = fim.getTime() - Date.now();
+        return ms > 0 ? Math.ceil(ms / (24 * 60 * 60 * 1000)) : 0;
+    }
+
     // --- Diz se o acesso está liberado agora (teste grátis ainda no prazo,
     // Pix ainda dentro da validade de 3 meses, ou assinatura recorrente ativa) ---
     function acessoLiberado(perfil) {
@@ -187,6 +196,7 @@
         exigirAssinaturaAtiva: exigirAssinaturaAtiva,
         redirecionarSeLogado: redirecionarSeLogado,
         diasRestantesTeste: diasRestantesTeste,
+        diasRestantesPix: diasRestantesPix,
         acessoLiberado: acessoLiberado
     };
 })();

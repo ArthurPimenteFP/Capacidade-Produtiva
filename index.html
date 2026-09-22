@@ -70,6 +70,17 @@
             </div>
         </header>
 
+        <!-- Aviso: Pix vencendo em breve -->
+        <div class="plan-warning-banner" id="pix-expira-banner" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span id="pix-expira-texto"></span>
+            <a href="planos.html" class="plan-warning-banner__link">Renovar agora</a>
+        </div>
+
         <!-- Tabs -->
         <nav class="app-tabs" id="app-tabs" role="tablist" aria-label="Calculadoras">
             <button type="button" class="tab-btn" role="tab" id="tab-colhedoras" data-tab="colhedoras"
@@ -492,6 +503,15 @@
                 }
                 if (perfil.plan === 'premium') {
                     document.getElementById('plano-link').style.display = 'inline-flex';
+                }
+                const diasPix = AppAuth.diasRestantesPix(perfil);
+                if (diasPix !== null && diasPix <= 7) {
+                    const banner = document.getElementById('pix-expira-banner');
+                    const texto = document.getElementById('pix-expira-texto');
+                    texto.textContent = diasPix === 1
+                        ? 'Seu Pix vence amanhã. Renove para não perder o acesso.'
+                        : 'Seu Pix vence em ' + diasPix + ' dias. Renove para não perder o acesso.';
+                    banner.hidden = false;
                 }
                 document.getElementById('auth-loading').style.display = 'none';
                 document.getElementById('app-container').style.display = '';

@@ -292,3 +292,49 @@
     font-weight: 500;
     color: var(--color-text-secondary);
 }
+
+/* Aviso de Pix vencendo em breve (index.html) */
+.plan-warning-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--amber-50);
+    color: #92400e;
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    border-bottom: 1px solid var(--amber-400);
+}
+
+.plan-warning-banner svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--amber-500);
+}
+
+.plan-warning-banner span {
+    flex: 1;
+}
+
+.plan-warning-banner__link {
+    flex-shrink: 0;
+    background: var(--amber-500);
+    color: var(--white);
+    text-decoration: none;
+    padding: 4px var(--space-md);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.plan-warning-banner__link:hover {
+    background: #d97706;
+}
+
+@media (max-width: 560px) {
+    .plan-warning-banner {
+        flex-wrap: wrap;
+    }
+}

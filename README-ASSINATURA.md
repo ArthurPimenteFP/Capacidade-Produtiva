@@ -151,6 +151,27 @@ Para quem pagou via Pix, não existe assinatura pra cancelar no Mercado Pago
 mesmo campo `plan` para `"free"`, ou mude `planExpiraEm` para uma data
 passada.
 
+## Aviso de "Pix vencendo em breve"
+
+Como o Pix não tem cobrança automática, o app avisa a pessoa antes do
+vencimento em vez de simplesmente cortar o acesso sem aviso:
+
+- **Dentro do app (`index.html`)**: quando faltam 7 dias ou menos para o
+  Pix vencer, aparece uma faixa amarela abaixo do cabeçalho com o número de
+  dias restantes e um link "Renovar agora" para `planos.html`.
+- **Na tela de assinatura (`planos.html`)**: o texto de "assinatura ativa"
+  muda para um alerta com a contagem de dias, e um botão **"Renovar Pix
+  agora"** aparece, permitindo gerar um novo QR code e pagar antes mesmo de
+  vencer (sem precisar esperar o acesso cair para poder pagar de novo).
+
+Isso é feito só com o que já está salvo no Firestore (`planExpiraEm`), sem
+precisar de nenhum serviço de e-mail. Se no futuro você quiser também um
+aviso por e-mail, dá pra criar uma Cloud Function agendada parecida com a
+`expirarPix` (rodando 1x por dia, buscando quem está a poucos dias do
+vencimento) e usar algum serviço de envio de e-mail (Resend, SendGrid etc.)
+— isso não foi implementado porque o projeto não tem nenhuma credencial de
+e-mail configurada ainda.
+
 ## Resumo das perguntas mais comuns
 
 - **Dá trabalho cancelar assinatura / descadastrar cartão?** Não. O número
