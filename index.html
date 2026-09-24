@@ -44,15 +44,6 @@
                 <h1>Controle de Colhedoras</h1>
                 <p class="header-subtitle">Tempos Produtivos</p>
             </div>
-            <div class="auto-save-badge" id="auto-save-badge" title="Salvamento automático ativo">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                    <polyline points="17 21 17 13 7 13 7 21" />
-                    <polyline points="7 3 7 8 15 8" />
-                </svg>
-                <span>Auto</span>
-            </div>
             <div class="user-bar">
                 <span class="user-bar__name" id="user-name-label"></span>
                 <a href="planos.html" class="user-bar__btn" id="plano-link" style="display:none;">
@@ -327,6 +318,15 @@
 
             <!-- Action Buttons -->
             <section class="actions-section" id="actions-section">
+                <a href="dashboard.html" class="btn btn--secondary btn--block" id="btn-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    Ver Dashboard
+                </a>
                 <button type="button" class="btn btn--danger btn--block" id="btn-clear-all">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">

@@ -1,0 +1,224 @@
+/* ===========================
+   RESET DO LAYOUT DE GRADE DESKTOP DO INDEX
+   O .app-container do index.html vira um grid com áreas nomeadas
+   (form/list/truck/tabs...) a partir de 900px. O dashboard usa a mesma
+   classe só pra herdar o visual básico (header, cores, etc.), mas não
+   tem essas áreas — então aqui a gente desliga o grid pra esse
+   container específico e deixa o conteúdo em fluxo normal (bloco),
+   centralizado pelo .dash-content.
+   =========================== */
+@media (min-width: 900px) {
+    #dash-container.app-container {
+        display: block;
+        grid-template-columns: none;
+        grid-template-areas: none;
+    }
+}
+
+/* ===========================
+   DASHBOARD
+   =========================== */
+
+.dash-header {
+    gap: var(--space-md);
+}
+
+.dash-back {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--white);
+    text-decoration: none;
+}
+
+.dash-back svg {
+    width: 20px;
+    height: 20px;
+}
+
+.dash-export-btn {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    font-size: var(--font-size-sm);
+}
+
+.dash-export-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.dash-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+}
+
+.dash-print-header {
+    display: none;
+}
+
+.dash-empty {
+    text-align: center;
+    padding: var(--space-2xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+    color: var(--color-text-secondary);
+}
+
+.dash-summary {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 0 var(--space-lg);
+    margin-top: 0;
+}
+
+.summary-card--count::before {
+    background: linear-gradient(90deg, var(--gray-500), var(--gray-400));
+}
+
+.summary-card--count .summary-card__icon {
+    background: var(--gray-100);
+    color: var(--gray-600);
+}
+
+.summary-card--truck::before {
+    background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
+
+.summary-card--truck .summary-card__icon {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.dash-charts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.dash-chart-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-lg);
+}
+
+.dash-chart-card h3 {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-md);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.dash-chart-wrap {
+    position: relative;
+    height: 220px;
+}
+
+.dash-table-section h3 {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--space-md);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.dash-table-section .footer-label {
+    font-weight: 700;
+}
+
+.dash-table-section .footer-value {
+    font-weight: 700;
+    color: var(--green-700);
+}
+
+@media (min-width: 700px) {
+    .dash-charts {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dash-summary {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ===========================
+   IMPRESSÃO / EXPORTAR PDF
+   Ao clicar em "Exportar PDF" chamamos window.print(); o navegador deixa
+   escolher "Salvar como PDF" no destino. Aqui escondemos tudo que não faz
+   parte do relatório (cabeçalho colorido, botão, borda dos cartões) e
+   ajustamos a página pra caber bem impressa.
+   =========================== */
+@media print {
+
+    .auth-loading-overlay,
+    .dash-header,
+    .toast {
+        display: none !important;
+    }
+
+    body {
+        background: var(--white);
+    }
+
+    .dash-content {
+        padding: 0;
+        max-width: 100%;
+    }
+
+    .dash-print-header {
+        display: block;
+        margin-bottom: var(--space-lg);
+        border-bottom: 2px solid var(--green-600);
+        padding-bottom: var(--space-md);
+    }
+
+    .dash-print-header h2 {
+        font-size: var(--font-size-xl);
+        color: var(--green-700);
+    }
+
+    .dash-print-header p {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+        margin-top: 4px;
+    }
+
+    .dash-summary {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .summary-card,
+    .dash-chart-card {
+        box-shadow: none;
+        border: 1px solid var(--color-border);
+        break-inside: avoid;
+    }
+
+    .dash-charts {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dash-chart-wrap {
+        height: 180px;
+    }
+
+    .dash-table-section {
+        break-inside: avoid;
+    }
+
+    .admin-table-wrap {
+        overflow: visible;
+    }
+}

@@ -184,6 +184,11 @@ body {
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
+    /* Em vez de quebrar linha e colidir com o selo "Auto" ou os botões,
+       trunca com reticências num telão pequeno */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-subtitle {
@@ -192,39 +197,9 @@ body {
     font-weight: 400;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-}
-
-.auto-save-badge {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 6px 10px;
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-xs);
-    font-weight: 500;
-    flex-shrink: 0;
     white-space: nowrap;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    animation: pulse-badge 3s ease-in-out infinite;
-}
-
-.auto-save-badge svg {
-    width: 14px;
-    height: 14px;
-}
-
-@keyframes pulse-badge {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ===========================
@@ -807,6 +782,9 @@ body {
 .actions-section {
     padding: var(--space-lg);
     margin-top: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
 }
 
 /* ===========================
@@ -1337,6 +1315,7 @@ body {
 
     .app-header {
         padding: var(--space-lg) var(--space-md);
+        gap: var(--space-sm);
     }
 
     .truck-section {
@@ -1367,6 +1346,21 @@ body {
 @media (max-width: 360px) {
     .summary-section {
         grid-template-columns: 1fr;
+    }
+
+    /* Espaço bem curto: os botões da barra do usuário (Assinatura/Admin/Sair)
+       viram só ícone, pra não empurrar o título do app */
+    .user-bar__btn {
+        padding: 6px;
+        width: 32px;
+        height: 32px;
+        justify-content: center;
+        font-size: 0;
+    }
+
+    .user-bar__btn svg {
+        width: 15px;
+        height: 15px;
     }
 }
 
