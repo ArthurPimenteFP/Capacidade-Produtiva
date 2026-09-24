@@ -1347,21 +1347,6 @@ body {
     .summary-section {
         grid-template-columns: 1fr;
     }
-
-    /* Espaço bem curto: os botões da barra do usuário (Assinatura/Admin/Sair)
-       viram só ícone, pra não empurrar o título do app */
-    .user-bar__btn {
-        padding: 6px;
-        width: 32px;
-        height: 32px;
-        justify-content: center;
-        font-size: 0;
-    }
-
-    .user-bar__btn svg {
-        width: 15px;
-        height: 15px;
-    }
 }
 
 

@@ -172,17 +172,37 @@
     white-space: nowrap;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
+    flex-shrink: 0;
 }
 
 .user-bar__btn svg {
     width: 14px;
     height: 14px;
+    flex-shrink: 0;
 }
 
 .user-bar__btn--admin {
     display: none;
     background: rgba(255, 255, 255, 0.95);
     color: var(--color-primary-hover);
+}
+
+/* Telas bem estreitas: botões viram só ícone (fica DEPOIS da regra base
+   pra não ser sobrescrito). Texto escondido, tamanho fixo e centralizado. */
+@media (max-width: 360px) {
+    .user-bar { gap: 6px; }
+    .user-bar__btn {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        justify-content: center;
+        font-size: 0;
+        gap: 0;
+    }
+    .user-bar__btn svg {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 /* ===== Painel Admin ===== */
