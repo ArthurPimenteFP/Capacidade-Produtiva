@@ -30,15 +30,18 @@ service cloud.firestore {
              request.resource.data.get('planStatus', null) == resource.data.get('planStatus', null) &&
              request.resource.data.get('trialEnd', null) == resource.data.get('trialEnd', null) &&
              request.resource.data.get('planExpiraEm', null) == resource.data.get('planExpiraEm', null) &&
-             request.resource.data.get('pixPaymentId', null) == resource.data.get('pixPaymentId', null);
+             request.resource.data.get('pixPaymentId', null) == resource.data.get('pixPaymentId', null) &&
+             request.resource.data.get('cpfMascarado', null) == resource.data.get('cpfMascarado', null) &&
+             request.resource.data.get('exigeVerificacaoEmail', null) == resource.data.get('exigeVerificacaoEmail', null) &&
+             request.resource.data.get('planoEscolhido', null) == resource.data.get('planoEscolhido', null);
     }
 
     // Perfis dos usuários (nome, e-mail, role, plano)
     match /users/{userId} {
       allow read: if estaLogado() && (request.auth.uid == userId || ehAdmin());
-      allow create: if estaLogado() && request.auth.uid == userId
-                    && request.resource.data.role == 'user'
-                    && request.resource.data.plan == 'trial'; // todo mundo começa só no teste grátis, nunca já pago ou admin
+      // O perfil de quem se cadastra é criado pelo SERVIDOR (api/registrarUsuario.js,
+      // que valida o CPF e define os 7 dias de teste). O navegador não pode criar.
+      allow create: if ehAdmin();
       allow update: if estaLogado() && (
                       (request.auth.uid == userId && camposProtegidosMantidos()) ||
                       ehAdmin()

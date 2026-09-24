@@ -33,7 +33,7 @@
 
             <!-- Estado: ainda dentro do teste grátis -->
             <p id="aviso-teste" hidden style="text-align:center; font-size:var(--font-size-sm); color:var(--color-text-secondary); margin-bottom:var(--space-lg);">
-                Você ainda tem <strong id="dias-restantes">-</strong> dia(s) de teste grátis. Pode assinar quando quiser, não precisa esperar acabar.
+                Faltam <strong id="dias-restantes">-</strong> de teste grátis. Pode assinar quando quiser, não precisa esperar acabar.
             </p>
 
             <!-- Estado: nunca assinou / teste acabou / assinatura cancelada -->
@@ -110,7 +110,6 @@
                     ✅ Sua assinatura está ativa. Você tem acesso completo ao app.
                 </p>
                 <a href="index.html" class="btn btn--primary auth-submit" style="text-decoration:none; text-align:center;">Voltar para o app</a>
-                <button type="button" class="btn btn--primary auth-submit" id="btn-renovar-pix" hidden style="margin-top:var(--space-md);">Renovar Pix agora</button>
                 <button type="button" class="btn btn--secondary auth-submit" id="btn-cancelar" style="margin-top:var(--space-md);">Cancelar assinatura</button>
                 <p id="aviso-sem-cancelar" hidden style="text-align:center; font-size:var(--font-size-xs); color:var(--color-text-secondary); margin-top:var(--space-md);">
                     Pagamento via Pix não tem renovação automática — não há nada para cancelar. O acesso vale até a data contratada.
@@ -145,7 +144,6 @@
             const blocoPendente = document.getElementById('bloco-pendente');
             const blocoAtivo = document.getElementById('bloco-ativo');
             const textoAtivo = document.getElementById('texto-ativo');
-            const btnRenovarPix = document.getElementById('btn-renovar-pix');
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
             let toastTimeout = null;
@@ -176,7 +174,6 @@
                 blocoPix.hidden = true;
                 blocoPendente.hidden = true;
                 blocoAtivo.hidden = true;
-                btnRenovarPix.hidden = true;
                 avisoTeste.hidden = true;
 
                 const liberado = AppAuth.acessoLiberado(perfil);
@@ -207,12 +204,11 @@
                         const vencendoLogo = diasPix !== null && diasPix <= 7;
                         if (vencendoLogo) {
                             textoAtivo.textContent = diasPix === 1
-                                ? '⚠️ Assinatura via Pix vence amanhã. Pague de novo para renovar por mais 1 mês.'
-                                : '⚠️ Assinatura via Pix vence em ' + diasPix + ' dias. Pague de novo para renovar por mais 1 mês.';
+                                ? '⚠️ Assinatura via Pix vence amanhã. Quando o prazo acabar, você poderá renovar por aqui.'
+                                : '⚠️ Assinatura via Pix vence em ' + diasPix + ' dias. Quando o prazo acabar, você poderá renovar por aqui.';
                         } else {
                             textoAtivo.textContent = '✅ Assinatura ativa via Pix' + (diasPix !== null ? ' (' + diasPix + ' dias restantes).' : '.');
                         }
-                        btnRenovarPix.hidden = !vencendoLogo;
                     } else {
                         textoAtivo.textContent = '✅ Sua assinatura está ativa. Você tem acesso completo ao app.';
                     }
@@ -222,7 +218,8 @@
                     blocoAssinar.hidden = false;
                     if (perfil.plan === 'trial') {
                         avisoTeste.hidden = false;
-                        diasRestantesEl.textContent = AppAuth.diasRestantesTeste(perfil);
+                        const rt = AppAuth.resumoTeste(perfil);
+                        diasRestantesEl.textContent = rt && !rt.expirou ? rt.texto : '0 dias';
                     }
                 }
             }
@@ -302,10 +299,6 @@
             }
             document.getElementById('btn-trocar-plano').addEventListener('click', voltarParaPlanos);
             document.getElementById('btn-voltar-pix').addEventListener('click', voltarParaPlanos);
-            btnRenovarPix.addEventListener('click', function () {
-                blocoAtivo.hidden = true;
-                iniciarPagamentoPix(this);
-            });
             document.getElementById('btn-copiar-pix').addEventListener('click', function () {
                 const campo = document.getElementById('pix-copia-cola');
                 campo.select();

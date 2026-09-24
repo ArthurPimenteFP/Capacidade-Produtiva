@@ -16,6 +16,8 @@
     }
 
     const auth = firebase.auth();
+    // Faz os e-mails do Firebase (confirmar e-mail, redefinir senha) saírem em português
+    auth.languageCode = 'pt-BR';
     const db = firebase.firestore();
 
     // Tenta manter o app utilizável offline (leitura de cache local do Firestore)
@@ -39,35 +41,38 @@
         return map[err.code] || ('Erro: ' + (err.message || 'não foi possível completar a ação.'));
     }
 
-    // Duração do teste grátis (em dias). Não exige cartão: é controlado
-    // só pelo Firestore, a partir da data de cadastro.
-    const DIAS_TESTE_GRATIS = 5;
+    // O teste grátis (7 dias, sem cartão) é criado pelo SERVIDOR
+    // (api/registrarUsuario.js), junto com a checagem de CPF. Aqui o
+    // navegador só cria o login e pede pro servidor concluir o cadastro.
+    let registrando = false; // evita que login/cadastro redirecionem no meio do processo
 
-    // --- Cadastro de novo usuário comum ---
-    // "plan: trial" = dentro do período de teste grátis (5 dias, sem cartão).
-    // "trialEnd" trava a data em que o teste acaba; depois disso o acesso só
-    // volta quando o Mercado Pago confirmar um pagamento (Cloud Functions).
-    function registrar(nome, email, senha) {
+    function registrar(nome, email, senha, cpf) {
+        registrando = true;
         return auth.createUserWithEmailAndPassword(email, senha)
-            .then(function (cred) {
-                const agora = new Date();
-                const fimTeste = new Date(agora.getTime() + DIAS_TESTE_GRATIS * 24 * 60 * 60 * 1000);
-                return db.collection('users').doc(cred.user.uid).set({
-                    name: nome,
-                    email: email,
-                    role: 'user',
-                    plan: 'trial',
-                    planStatus: 'trial',
-                    trialEnd: firebase.firestore.Timestamp.fromDate(fimTeste),
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(function () {
-                    return cred.user.updateProfile({ displayName: nome });
-                }).then(function () {
-                    return cred;
-                });
-            })
             .catch(function (err) {
+                registrando = false;
                 throw new Error(traduzErro(err));
+            })
+            .then(function (cred) {
+                return chamarApi('registrarUsuario', { nome: nome, cpf: cpf })
+                    .then(function () {
+                        return cred.user.updateProfile({ displayName: nome }).catch(function () { });
+                    })
+                    .then(function () {
+                        // Manda o e-mail de confirmação (link) - o app só libera depois de confirmar
+                        return cred.user.sendEmailVerification().catch(function (e) { console.error(e); });
+                    })
+                    .then(function () {
+                        registrando = false;
+                        return cred;
+                    })
+                    .catch(function (err) {
+                        registrando = false;
+                        // Cadastro não concluído (ex.: CPF já usado): desfaz a conta de login
+                        return cred.user.delete().catch(function () { return auth.signOut(); }).then(function () {
+                            throw err;
+                        });
+                    });
             });
     }
 
@@ -77,6 +82,15 @@
             .catch(function (err) {
                 throw new Error(traduzErro(err));
             });
+    }
+
+    // --- Esqueci a senha: manda um e-mail com o link pra criar uma nova senha ---
+    // Por segurança, não revela se o e-mail existe ou não (mesma resposta nos dois casos).
+    function redefinirSenha(email) {
+        return auth.sendPasswordResetEmail(email).catch(function (err) {
+            if (err.code === 'auth/user-not-found') return; // finge que enviou
+            throw new Error(traduzErro(err));
+        });
     }
 
     // --- Logout ---
@@ -111,7 +125,12 @@
                     role: perfil.role || 'user',
                     plan: perfil.plan || 'none',
                     planStatus: perfil.planStatus || 'none',
-                    planoEscolhido: perfil.planoEscolhido || null
+                    planoEscolhido: perfil.planoEscolhido || null,
+                    trialEnd: perfil.trialEnd || null,
+                    planExpiraEm: perfil.planExpiraEm || null,
+                    cpfMascarado: perfil.cpfMascarado || null,
+                    exigeVerificacaoEmail: !!perfil.exigeVerificacaoEmail,
+                    emailVerified: user.emailVerified
                 });
             }, function (err) {
                 console.error('Erro ao observar perfil:', err);
@@ -169,6 +188,27 @@
         return ms > 0 ? Math.ceil(ms / (24 * 60 * 60 * 1000)) : 0;
     }
 
+    // --- Resumo do teste grátis pra mostrar contagem regressiva:
+    // { expirou, texto: "6 dias e 4h", fim: Date } (null se não tem teste) ---
+    function resumoTeste(perfil) {
+        if (!perfil.trialEnd) return null;
+        const fim = perfil.trialEnd.toDate ? perfil.trialEnd.toDate() : new Date(perfil.trialEnd);
+        const ms = fim.getTime() - Date.now();
+        if (ms <= 0) return { expirou: true, texto: '', fim: fim };
+        const dias = Math.floor(ms / 86400000);
+        const horas = Math.floor((ms % 86400000) / 3600000);
+        const min = Math.floor((ms % 3600000) / 60000);
+        let texto;
+        if (dias >= 1) {
+            texto = dias + (dias === 1 ? ' dia' : ' dias') + (horas ? ' e ' + horas + 'h' : '');
+        } else if (horas >= 1) {
+            texto = horas + 'h e ' + min + 'min';
+        } else {
+            texto = Math.max(min, 1) + ' min';
+        }
+        return { expirou: false, texto: texto, fim: fim };
+    }
+
     // --- Calcula quantos dias faltam pro Pix vencer (null se não estiver no
     // plano Pix ou não tiver data de expiração; 0 se já venceu) ---
     function diasRestantesPix(perfil) {
@@ -199,6 +239,11 @@
     // --- Protege o app: exige login E acesso liberado (teste, Pix ou cartão) ---
     function exigirAssinaturaAtiva(callback) {
         exigirLogin(function (perfil) {
+            // Contas novas precisam confirmar o e-mail (link enviado no cadastro)
+            if (perfil.role !== 'admin' && perfil.exigeVerificacaoEmail && !perfil.emailVerified) {
+                window.location.href = 'verificar-email.html';
+                return;
+            }
             if (acessoLiberado(perfil)) {
                 callback(perfil);
             } else {
@@ -211,7 +256,7 @@
     // (o próprio index.html decide se o mostra ou redireciona pra tela de assinatura)
     function redirecionarSeLogado() {
         auth.onAuthStateChanged(function (user) {
-            if (user) window.location.href = 'index.html';
+            if (user && !registrando) window.location.href = 'index.html';
         });
     }
 
@@ -221,6 +266,7 @@
         chamarApi: chamarApi,
         registrar: registrar,
         login: login,
+        redefinirSenha: redefinirSenha,
         logout: logout,
         buscarPerfil: buscarPerfil,
         exigirLogin: exigirLogin,
@@ -228,6 +274,7 @@
         exigirAssinaturaAtiva: exigirAssinaturaAtiva,
         redirecionarSeLogado: redirecionarSeLogado,
         diasRestantesTeste: diasRestantesTeste,
+        resumoTeste: resumoTeste,
         diasRestantesPix: diasRestantesPix,
         acessoLiberado: acessoLiberado
     };

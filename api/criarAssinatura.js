@@ -2,6 +2,7 @@
 const { aplicarCors } = require('./_lib/cors');
 const { verificarLogin } = require('./_lib/verificarLogin');
 const { getAdmin } = require('./_lib/firebaseAdmin');
+const { acessoPagoAtivo } = require('./_lib/acessoPago');
 
 // Planos de cartão (recorrência a cada N meses). O valor é decidido aqui no
 // servidor: o navegador só manda a chave do plano ('2m' ou '3m').
@@ -31,6 +32,18 @@ module.exports = async function (req, res) {
     const plano = PLANOS_CARTAO[chave];
     if (!plano) {
         res.status(400).json({ error: 'Plano inválido.' });
+        return;
+    }
+
+    try {
+        const perfilSnap = await getAdmin().firestore().collection('users').doc(usuario.uid).get();
+        if (acessoPagoAtivo(perfilSnap.exists ? perfilSnap.data() : null)) {
+            res.status(409).json({ error: 'Você já tem uma assinatura ativa. Só é possível renovar quando o prazo acabar.' });
+            return;
+        }
+    } catch (err) {
+        console.error('Erro ao conferir assinatura atual:', err);
+        res.status(500).json({ error: 'Não foi possível conferir sua assinatura. Tente novamente.' });
         return;
     }
 

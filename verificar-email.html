@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Confirme seu e-mail - Controle de Colhedoras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-card__header">
+                <div class="auth-card__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                </div>
+                <h1>Confirme seu e-mail</h1>
+                <p>Enviamos um link para <strong id="email-alvo">seu e-mail</strong>. Clique nele para liberar seus 7 dias grátis.</p>
+            </div>
+
+            <p class="auth-error" id="ve-error" role="alert"></p>
+            <p id="ve-info" style="text-align:center; color:var(--color-text-secondary); font-size:var(--font-size-sm); margin-bottom:var(--space-md);">
+                Não achou? Olhe também a caixa de spam.
+            </p>
+
+            <button type="button" class="btn btn--primary auth-submit" id="btn-ja-confirmei">Já confirmei</button>
+            <button type="button" class="btn btn--secondary auth-submit" id="btn-reenviar" style="margin-top:var(--space-md);">Reenviar e-mail</button>
+
+            <p class="auth-switch"><a href="#" id="link-sair">Sair da conta</a></p>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        (function () {
+            'use strict';
+            const auth = AppAuth.auth;
+            const errorBox = document.getElementById('ve-error');
+            const info = document.getElementById('ve-info');
+            const btnJa = document.getElementById('btn-ja-confirmei');
+            const btnReenviar = document.getElementById('btn-reenviar');
+            let usuarioAtual = null;
+
+            function mostrarErro(msg) { errorBox.textContent = msg; errorBox.classList.add('is-visible'); }
+
+            function verificar(silencioso) {
+                if (!usuarioAtual) return Promise.resolve();
+                return usuarioAtual.reload().then(function () {
+                    if (usuarioAtual.emailVerified) {
+                        window.location.href = 'index.html';
+                    } else if (!silencioso) {
+                        mostrarErro('Ainda não recebemos a confirmação. Clique no link do e-mail e tente de novo.');
+                    }
+                }).catch(function (e) { console.error(e); });
+            }
+
+            auth.onAuthStateChanged(function (user) {
+                if (!user) { window.location.href = 'login.html'; return; }
+                usuarioAtual = user;
+                document.getElementById('email-alvo').textContent = user.email;
+                if (user.emailVerified) { window.location.href = 'index.html'; return; }
+                // Confere sozinho a cada 5s (a pessoa pode confirmar em outra aba/aparelho)
+                setInterval(function () { verificar(true); }, 5000);
+            });
+
+            btnJa.addEventListener('click', function () {
+                errorBox.classList.remove('is-visible');
+                verificar(false);
+            });
+
+            btnReenviar.addEventListener('click', function () {
+                if (!usuarioAtual) return;
+                errorBox.classList.remove('is-visible');
+                btnReenviar.disabled = true;
+                usuarioAtual.sendEmailVerification().then(function () {
+                    info.textContent = 'E-mail reenviado! Confira a caixa de entrada e o spam.';
+                }).catch(function (err) {
+                    mostrarErro(err.code === 'auth/too-many-requests'
+                        ? 'Muitos pedidos. Aguarde alguns minutos e tente de novo.'
+                        : 'Não foi possível reenviar agora.');
+                }).then(function () {
+                    let s = 60;
+                    const t = setInterval(function () {
+                        s--;
+                        btnReenviar.textContent = 'Reenviar e-mail (' + s + 's)';
+                        if (s <= 0) { clearInterval(t); btnReenviar.disabled = false; btnReenviar.textContent = 'Reenviar e-mail'; }
+                    }, 1000);
+                });
+            });
+
+            document.getElementById('link-sair').addEventListener('click', function (e) {
+                e.preventDefault();
+                AppAuth.logout().then(function () { window.location.href = 'login.html'; });
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -70,6 +70,16 @@
             </div>
         </header>
 
+        <!-- Contagem regressiva do teste grátis -->
+        <div class="plan-warning-banner" id="trial-banner" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span id="trial-texto"></span>
+            <a href="planos.html" class="plan-warning-banner__link">Assinar</a>
+        </div>
+
         <!-- Aviso: Pix vencendo em breve -->
         <div class="plan-warning-banner" id="pix-expira-banner" hidden>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -78,7 +88,6 @@
                 <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
             <span id="pix-expira-texto"></span>
-            <a href="planos.html" class="plan-warning-banner__link">Renovar agora</a>
         </div>
 
         <!-- Tabs -->
@@ -509,9 +518,25 @@
                     const banner = document.getElementById('pix-expira-banner');
                     const texto = document.getElementById('pix-expira-texto');
                     texto.textContent = diasPix === 1
-                        ? 'Seu Pix vence amanhã. Renove para não perder o acesso.'
-                        : 'Seu Pix vence em ' + diasPix + ' dias. Renove para não perder o acesso.';
+                        ? 'Seu Pix vence amanhã. Quando o prazo acabar, você poderá renovar.'
+                        : 'Seu Pix vence em ' + diasPix + ' dias. Quando o prazo acabar, você poderá renovar.';
                     banner.hidden = false;
+                }
+                if (window.__trialTimer) { clearInterval(window.__trialTimer); window.__trialTimer = null; }
+                if (perfil.plan === 'trial' && perfil.role !== 'admin') {
+                    const bannerTeste = document.getElementById('trial-banner');
+                    const textoTeste = document.getElementById('trial-texto');
+                    const atualizarTeste = function () {
+                        const r = AppAuth.resumoTeste(perfil);
+                        if (!r) return;
+                        if (r.expirou) { window.location.href = 'planos.html'; return; }
+                        const quando = r.fim.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+                            + ' às ' + r.fim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        textoTeste.textContent = 'Teste grátis: faltam ' + r.texto + ' (termina em ' + quando + ').';
+                    };
+                    atualizarTeste();
+                    bannerTeste.hidden = false;
+                    window.__trialTimer = setInterval(atualizarTeste, 60000);
                 }
                 document.getElementById('auth-loading').style.display = 'none';
                 document.getElementById('app-container').style.display = '';

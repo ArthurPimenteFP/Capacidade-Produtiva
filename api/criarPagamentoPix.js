@@ -2,6 +2,7 @@
 const { aplicarCors } = require('./_lib/cors');
 const { verificarLogin } = require('./_lib/verificarLogin');
 const { getAdmin } = require('./_lib/firebaseAdmin');
+const { acessoPagoAtivo } = require('./_lib/acessoPago');
 
 const VALOR_PIX_MENSAL = 15.9;
 const NOME_PLANO = 'Controle de Colhedoras - Plano Premium';
@@ -18,6 +19,18 @@ module.exports = async function (req, res) {
         usuario = await verificarLogin(req);
     } catch (err) {
         res.status(err.status || 401).json({ error: err.message });
+        return;
+    }
+
+    try {
+        const perfilSnap = await getAdmin().firestore().collection('users').doc(usuario.uid).get();
+        if (acessoPagoAtivo(perfilSnap.exists ? perfilSnap.data() : null)) {
+            res.status(409).json({ error: 'Você já tem uma assinatura ativa. Só é possível renovar quando o prazo acabar.' });
+            return;
+        }
+    } catch (err) {
+        console.error('Erro ao conferir assinatura atual:', err);
+        res.status(500).json({ error: 'Não foi possível conferir sua assinatura. Tente novamente.' });
         return;
     }
 

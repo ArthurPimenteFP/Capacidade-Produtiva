@@ -338,3 +338,9 @@
         flex-wrap: wrap;
     }
 }
+
+/* Garante que elementos com o atributo "hidden" realmente sumam,
+   mesmo os que têm display definido por classes (.btn, .auth-submit...) */
+[hidden] {
+    display: none !important;
+}
