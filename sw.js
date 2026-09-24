@@ -1,4 +1,4 @@
-const CACHE_NAME = 'colhedoras-v9';
+const CACHE_NAME = 'colhedoras-v10';
 
 // Caminhos relativos ao local do sw.js: funcionam na raiz do domínio
 // e em subdiretórios (ex.: GitHub Pages em /Capacidade-Produtiva/)
@@ -74,7 +74,7 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(() => {
                 // Sem internet: usa a última cópia salva
-                return caches.match(event.request).then(cached => {
+                return caches.match(event.request, { ignoreSearch: true }).then(cached => {
                     if (cached) return cached;
                     if (event.request.mode === 'navigate') return caches.match('./index.html');
                 });

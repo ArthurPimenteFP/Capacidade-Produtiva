@@ -187,17 +187,16 @@
     color: var(--color-primary-hover);
 }
 
-/* Telas bem estreitas: botões viram só ícone (fica DEPOIS da regra base
-   pra não ser sobrescrito). Texto escondido, tamanho fixo e centralizado. */
-@media (max-width: 360px) {
+/* Celulares (até 480px): os botões da barra do usuário mostram só o ícone.
+   Não usa largura fixa: o botão se ajusta sozinho ao ícone, então o texto
+   nunca sobra pra fora, seja qual for a largura da tela. */
+@media (max-width: 480px) {
     .user-bar { gap: 6px; }
+    .user-bar__label { display: none; }
     .user-bar__btn {
-        width: 34px;
-        height: 34px;
-        padding: 0;
-        justify-content: center;
-        font-size: 0;
+        padding: 8px;
         gap: 0;
+        justify-content: center;
     }
     .user-bar__btn svg {
         width: 16px;

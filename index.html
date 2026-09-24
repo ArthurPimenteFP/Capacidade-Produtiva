@@ -19,8 +19,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="auth.css?v=10">
 </head>
 
 <body>
@@ -46,17 +46,17 @@
             </div>
             <div class="user-bar">
                 <span class="user-bar__name" id="user-name-label"></span>
-                <a href="planos.html" class="user-bar__btn" id="plano-link" style="display:none;">
+                <a href="planos.html" class="user-bar__btn" id="plano-link" aria-label="Assinatura" style="display:none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9M14 17H5M17 3v18M7 3v18"/></svg>
-                    Assinatura
+                    <span class="user-bar__label">Assinatura</span>
                 </a>
-                <a href="admin.html" class="user-bar__btn user-bar__btn--admin" id="admin-link">
+                <a href="admin.html" class="user-bar__btn user-bar__btn--admin" id="admin-link" aria-label="Admin">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Admin
+                    <span class="user-bar__label">Admin</span>
                 </a>
-                <button type="button" class="user-bar__btn" id="btn-logout">
+                <button type="button" class="user-bar__btn" id="btn-logout" aria-label="Sair">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    Sair
+                    <span class="user-bar__label">Sair</span>
                 </button>
             </div>
         </header>
