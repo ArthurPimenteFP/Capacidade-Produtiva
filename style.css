@@ -184,6 +184,11 @@ body {
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
+    /* Em vez de quebrar linha e colidir com o selo "Auto" ou os botões,
+       trunca com reticências num telão pequeno */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-subtitle {
@@ -192,6 +197,9 @@ body {
     font-weight: 400;
     letter-spacing: 0.02em;
     text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .auto-save-badge {
@@ -807,6 +815,9 @@ body {
 .actions-section {
     padding: var(--space-lg);
     margin-top: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
 }
 
 /* ===========================
@@ -1337,6 +1348,20 @@ body {
 
     .app-header {
         padding: var(--space-lg) var(--space-md);
+        gap: var(--space-sm);
+    }
+
+    /* Selo "Auto": no celular vira só o ícone, pra não brigar por espaço
+       com o título "Controle de Colhedoras" */
+    .auto-save-badge span {
+        display: none;
+    }
+
+    .auto-save-badge {
+        padding: 6px;
+        width: 28px;
+        height: 28px;
+        justify-content: center;
     }
 
     .truck-section {
@@ -1367,6 +1392,21 @@ body {
 @media (max-width: 360px) {
     .summary-section {
         grid-template-columns: 1fr;
+    }
+
+    /* Espaço bem curto: os botões da barra do usuário (Assinatura/Admin/Sair)
+       viram só ícone, pra não empurrar o título do app */
+    .user-bar__btn {
+        padding: 6px;
+        width: 32px;
+        height: 32px;
+        justify-content: center;
+        font-size: 0;
+    }
+
+    .user-bar__btn svg {
+        width: 15px;
+        height: 15px;
     }
 }
 
