@@ -157,16 +157,28 @@
 
                     const tdAcao = tr.lastElementChild;
                     if (!isSelf) {
-                        const btn = document.createElement('button');
-                        btn.type = 'button';
-                        btn.className = 'btn btn--secondary';
-                        btn.style.padding = '4px 10px';
-                        btn.style.fontSize = '12px';
-                        btn.textContent = u.role === 'admin' ? 'Remover admin' : 'Tornar admin';
-                        btn.addEventListener('click', function () {
+                        const btnRole = document.createElement('button');
+                        btnRole.type = 'button';
+                        btnRole.className = 'btn btn--secondary';
+                        btnRole.style.padding = '4px 10px';
+                        btnRole.style.fontSize = '12px';
+                        btnRole.style.marginRight = '6px';
+                        btnRole.textContent = u.role === 'admin' ? 'Remover admin' : 'Tornar admin';
+                        btnRole.addEventListener('click', function () {
                             alternarRole(uid, u.role === 'admin' ? 'user' : 'admin');
                         });
-                        tdAcao.appendChild(btn);
+                        tdAcao.appendChild(btnRole);
+
+                        const btnExcluir = document.createElement('button');
+                        btnExcluir.type = 'button';
+                        btnExcluir.className = 'btn btn--danger';
+                        btnExcluir.style.padding = '4px 10px';
+                        btnExcluir.style.fontSize = '12px';
+                        btnExcluir.textContent = 'Excluir conta';
+                        btnExcluir.addEventListener('click', function () {
+                            confirmarExclusao(uid, u.name || u.email || 'este usuário');
+                        });
+                        tdAcao.appendChild(btnExcluir);
                     }
                     tbody.appendChild(tr);
                 });
@@ -180,6 +192,65 @@
                     .catch(function (err) {
                         console.error(err);
                         showToast('Erro ao atualizar função.');
+                    });
+            }
+
+            // --- Diálogo de confirmação (mesmo visual usado no app) ---
+            function showConfirmDialog(title, message, onConfirm) {
+                const existing = document.querySelector('.confirm-overlay');
+                if (existing) existing.remove();
+
+                const overlay = document.createElement('div');
+                overlay.className = 'confirm-overlay';
+                overlay.innerHTML =
+                    '<div class="confirm-dialog">' +
+                        '<div class="confirm-dialog__icon">' +
+                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                                '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' +
+                                '<line x1="12" y1="9" x2="12" y2="13"/>' +
+                                '<line x1="12" y1="17" x2="12.01" y2="17"/>' +
+                            '</svg>' +
+                        '</div>' +
+                        '<h3 class="confirm-dialog__title">' + title + '</h3>' +
+                        '<p class="confirm-dialog__message">' + message + '</p>' +
+                        '<div class="confirm-dialog__actions">' +
+                            '<button type="button" class="btn btn--secondary" id="confirm-cancel">Cancelar</button>' +
+                            '<button type="button" class="btn btn--danger-solid" id="confirm-ok">Excluir</button>' +
+                        '</div>' +
+                    '</div>';
+
+                document.body.appendChild(overlay);
+
+                function closeDialog() { overlay.remove(); }
+
+                document.getElementById('confirm-cancel').addEventListener('click', closeDialog);
+                overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) closeDialog();
+                });
+                document.getElementById('confirm-ok').addEventListener('click', function () {
+                    closeDialog();
+                    onConfirm();
+                });
+            }
+
+            // --- Pede confirmação e chama a API que exclui o usuário de vez
+            // (login no Firebase Auth + perfil + dados salvos no Firestore) ---
+            function confirmarExclusao(uid, nomeOuEmail) {
+                showConfirmDialog(
+                    'Excluir conta',
+                    'Tem certeza que deseja excluir a conta de "' + nomeOuEmail + '"? O login e todos os dados salvos dessa pessoa serão apagados. Essa ação não pode ser desfeita.',
+                    function () { excluirUsuario(uid); }
+                );
+            }
+
+            function excluirUsuario(uid) {
+                AppAuth.chamarApi('excluirUsuario', { uid: uid })
+                    .then(function () {
+                        showToast('Conta excluída com sucesso!');
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        showToast(err.message || 'Erro ao excluir a conta.');
                     });
             }
 
