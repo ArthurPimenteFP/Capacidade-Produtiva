@@ -159,7 +159,7 @@
             const displayValue = formatDecimal(caminhoesNecessarios);
             
             truckResultValue.textContent = displayValue;
-            truckResultDetail.textContent = `${Math.round(totalTon)} ton/h ÷ ${formatNumber(pesoCaminhao)} ton = ${displayValue} caminhões/h`;
+            truckResultDetail.textContent = 'Caminhões necessários por hora';
             
             // Pop animation
             truckResultValue.classList.remove('updated');
