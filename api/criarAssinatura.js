@@ -3,7 +3,12 @@ const { aplicarCors } = require('./_lib/cors');
 const { verificarLogin } = require('./_lib/verificarLogin');
 const { getAdmin } = require('./_lib/firebaseAdmin');
 
-const VALOR_MENSAL = 9.9;
+// Planos de cartão (recorrência a cada N meses). O valor é decidido aqui no
+// servidor: o navegador só manda a chave do plano ('2m' ou '3m').
+const PLANOS_CARTAO = {
+    '2m': { meses: 2, valor: 23.9, nome: '2 meses' },
+    '3m': { meses: 3, valor: 29.99, nome: '3 meses' }
+};
 const NOME_PLANO = 'Controle de Colhedoras - Plano Premium';
 const APP_URL = process.env.APP_URL || 'https://arthurpimentefp.github.io/Capacidade-Produtiva';
 
@@ -22,6 +27,13 @@ module.exports = async function (req, res) {
         return;
     }
 
+    const chave = req.body && req.body.plano;
+    const plano = PLANOS_CARTAO[chave];
+    if (!plano) {
+        res.status(400).json({ error: 'Plano inválido.' });
+        return;
+    }
+
     let resp, data;
     try {
         resp = await fetch('https://api.mercadopago.com/preapproval', {
@@ -31,14 +43,14 @@ module.exports = async function (req, res) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                reason: NOME_PLANO,
+                reason: NOME_PLANO + ' - ' + plano.nome,
                 external_reference: usuario.uid,
                 payer_email: usuario.email,
                 back_url: APP_URL + '/planos.html',
                 auto_recurring: {
-                    frequency: 1,
+                    frequency: plano.meses,
                     frequency_type: 'months',
-                    transaction_amount: VALOR_MENSAL,
+                    transaction_amount: plano.valor,
                     currency_id: 'BRL'
                 },
                 status: 'pending'
@@ -60,6 +72,7 @@ module.exports = async function (req, res) {
     const admin = getAdmin();
     await admin.firestore().collection('users').doc(usuario.uid).set({
         subscriptionId: data.id,
+        planoEscolhido: chave,
         planStatus: 'pending'
     }, { merge: true });
 

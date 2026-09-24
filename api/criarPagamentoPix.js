@@ -1,9 +1,9 @@
-// --- Cria um pagamento único via Pix (R$ 49,90 = 3 meses, sem renovação automática) ---
+// --- Cria um pagamento único via Pix (R$ 15,90 = 1 mês, sem renovação automática) ---
 const { aplicarCors } = require('./_lib/cors');
 const { verificarLogin } = require('./_lib/verificarLogin');
 const { getAdmin } = require('./_lib/firebaseAdmin');
 
-const VALOR_PIX_TRIMESTRE = 49.9;
+const VALOR_PIX_MENSAL = 15.9;
 const NOME_PLANO = 'Controle de Colhedoras - Plano Premium';
 
 module.exports = async function (req, res) {
@@ -32,8 +32,8 @@ module.exports = async function (req, res) {
                 'X-Idempotency-Key': usuario.uid + '-pix-' + Date.now()
             },
             body: JSON.stringify({
-                transaction_amount: VALOR_PIX_TRIMESTRE,
-                description: NOME_PLANO + ' - Pix (3 meses)',
+                transaction_amount: VALOR_PIX_MENSAL,
+                description: NOME_PLANO + ' - Pix (1 mês)',
                 payment_method_id: 'pix',
                 external_reference: usuario.uid,
                 payer: { email: usuario.email }

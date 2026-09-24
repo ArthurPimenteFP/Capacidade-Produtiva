@@ -1,5 +1,5 @@
 // --- Roda 1x por dia (Vercel Cron, veja vercel.json): revoga o acesso de
-// quem pagou via Pix e passou dos 3 meses sem renovar. Protegida por
+// quem pagou via Pix e passou do prazo (1 mês) sem renovar. Protegida por
 // CRON_SECRET - a Vercel manda esse valor sozinha no cabeçalho
 // Authorization quando aciona o cron, então ninguém de fora consegue
 // chamar essa URL manualmente. ---

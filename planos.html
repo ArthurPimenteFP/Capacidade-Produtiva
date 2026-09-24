@@ -38,25 +38,38 @@
 
             <!-- Estado: nunca assinou / teste acabou / assinatura cancelada -->
             <div id="bloco-assinar">
-                <div class="admin-table-wrap" style="padding: var(--space-lg); margin-bottom: var(--space-lg); display:flex; flex-direction:column; gap:12px;">
-                    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
-                        <input type="radio" name="forma-pagamento" value="cartao" checked style="margin-top:4px;">
-                        <span>
-                            <span style="display:flex; align-items:baseline; gap:6px;">
-                                <strong style="font-size:1.4rem; color:var(--color-primary);">R$ 9,90</strong>
-                                <span style="color:var(--color-text-secondary); font-size:var(--font-size-sm);">/ mês no cartão</span>
+                <div id="lista-planos" style="display:flex; flex-direction:column; gap:10px; margin-bottom: var(--space-lg);">
+                    <label class="plano-opcao" style="position:relative; display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:var(--space-md); border:1px solid var(--color-border, #333); border-radius:12px;">
+                        <input type="radio" name="forma-pagamento" value="pix" style="margin-top:5px;">
+                        <span style="flex:1;">
+                            <span style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
+                                <strong style="font-size:1.3rem; color:var(--color-primary);">R$ 15,90</strong>
+                                <span style="color:var(--color-text-secondary); font-size:var(--font-size-sm);">1 mês no Pix</span>
                             </span>
-                            <span style="display:block; color:var(--color-text-secondary); font-size:var(--font-size-xs);">Cobrança recorrente automática. Cancele quando quiser.</span>
+                            <span style="display:block; color:var(--color-text-secondary); font-size:var(--font-size-xs);">Pagamento único, sem renovação automática.</span>
                         </span>
                     </label>
-                    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
-                        <input type="radio" name="forma-pagamento" value="pix" style="margin-top:4px;">
-                        <span>
-                            <span style="display:flex; align-items:baseline; gap:6px;">
-                                <strong style="font-size:1.4rem; color:var(--color-primary);">R$ 49,90</strong>
-                                <span style="color:var(--color-text-secondary); font-size:var(--font-size-sm);">no Pix (3 meses)</span>
+                    <label class="plano-opcao" style="position:relative; display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:var(--space-md); border:1px solid var(--color-border, #333); border-radius:12px;">
+                        <input type="radio" name="forma-pagamento" value="cartao-2m" style="margin-top:5px;">
+                        <span style="flex:1;">
+                            <span style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
+                                <strong style="font-size:1.3rem; color:var(--color-primary);">R$ 23,90</strong>
+                                <span style="color:var(--color-text-secondary); font-size:var(--font-size-sm);">2 meses no cartão</span>
                             </span>
-                            <span style="display:block; color:var(--color-text-secondary); font-size:var(--font-size-xs);">Pagamento único, sem renovação automática. Ao vencer, é só pagar de novo.</span>
+                            <span style="display:block; color:var(--color-text-secondary); font-size:var(--font-size-xs);">R$ 11,95/mês · economize R$ 7,90 · renova a cada 2 meses, cancele quando quiser.</span>
+                            <span style="display:block; color:var(--color-primary); font-size:var(--font-size-xs); margin-top:2px;">Por só R$ 6,09 a mais, leve 3 meses ↓</span>
+                        </span>
+                    </label>
+                    <label class="plano-opcao" style="position:relative; display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:var(--space-md); border:2px solid var(--color-primary); border-radius:12px;">
+                        <span style="position:absolute; top:-10px; right:12px; background:var(--color-primary); color:#fff; font-size:0.7rem; font-weight:700; padding:2px 10px; border-radius:999px;">MELHOR VALOR</span>
+                        <input type="radio" name="forma-pagamento" value="cartao-3m" checked style="margin-top:5px;">
+                        <span style="flex:1;">
+                            <span style="display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;">
+                                <strong style="font-size:1.3rem; color:var(--color-primary);">R$ 29,99</strong>
+                                <span style="color:var(--color-text-secondary); font-size:var(--font-size-sm);">3 meses no cartão</span>
+                                <s style="color:var(--color-text-secondary); font-size:var(--font-size-xs);">R$ 47,70</s>
+                            </span>
+                            <span style="display:block; color:var(--color-text-secondary); font-size:var(--font-size-xs);">R$ 10,00/mês · economize R$ 17,71 · renova a cada 3 meses, cancele quando quiser.</span>
                         </span>
                     </label>
                 </div>
@@ -78,6 +91,7 @@
                 <textarea id="pix-copia-cola" readonly rows="3" style="width:100%; resize:none; font-size:var(--font-size-xs); margin-bottom:var(--space-md);"></textarea>
                 <button type="button" class="btn btn--secondary auth-submit" id="btn-copiar-pix">Copiar código Pix</button>
                 <p id="pix-status" style="margin-top:var(--space-md); color:var(--color-text-secondary); font-size:var(--font-size-sm);">Aguardando confirmação do pagamento...</p>
+                <button type="button" class="btn btn--secondary auth-submit" id="btn-voltar-pix" style="margin-top:var(--space-md);">Escolher outro plano</button>
             </div>
 
             <!-- Estado: pagamento em análise (cartão) -->
@@ -87,6 +101,7 @@
                     Se você fechou a página antes de terminar, finalize o pagamento novamente abaixo.
                 </p>
                 <button type="button" class="btn btn--primary auth-submit" id="btn-assinar-de-novo">Finalizar pagamento</button>
+                <button type="button" class="btn btn--secondary auth-submit" id="btn-trocar-plano" style="margin-top:var(--space-md);">Escolher outro plano</button>
             </div>
 
             <!-- Estado: assinatura ativa (usuário chegou aqui pra gerenciar) -->
@@ -135,6 +150,9 @@
             const toastMessage = document.getElementById('toast-message');
             let toastTimeout = null;
             let intervaloPix = null;
+            let pixAtivo = false;        // QR code na tela: não deixa o Firestore esconder
+            let ultimoPerfil = null;
+            let escolhendoPlano = false; // usuário clicou em "Escolher outro plano"
 
             function showToast(msg) {
                 if (toastTimeout) clearTimeout(toastTimeout);
@@ -153,15 +171,24 @@
             }
 
             function atualizarTela(perfil) {
+                ultimoPerfil = perfil;
                 blocoAssinar.hidden = true;
                 blocoPix.hidden = true;
                 blocoPendente.hidden = true;
                 blocoAtivo.hidden = true;
                 btnRenovarPix.hidden = true;
                 avisoTeste.hidden = true;
-                pararPolling();
 
                 const liberado = AppAuth.acessoLiberado(perfil);
+
+                // Enquanto o QR code do Pix está na tela, mudanças no perfil
+                // (ex.: status "pix_pendente") não podem escondê-lo.
+                if (pixAtivo && !liberado) {
+                    blocoPix.hidden = false;
+                    return;
+                }
+                pixAtivo = false;
+                pararPolling();
 
                 if (liberado) {
                     blocoAtivo.hidden = false;
@@ -180,8 +207,8 @@
                         const vencendoLogo = diasPix !== null && diasPix <= 7;
                         if (vencendoLogo) {
                             textoAtivo.textContent = diasPix === 1
-                                ? '⚠️ Assinatura via Pix vence amanhã. Pague de novo para renovar por mais 3 meses.'
-                                : '⚠️ Assinatura via Pix vence em ' + diasPix + ' dias. Pague de novo para renovar por mais 3 meses.';
+                                ? '⚠️ Assinatura via Pix vence amanhã. Pague de novo para renovar por mais 1 mês.'
+                                : '⚠️ Assinatura via Pix vence em ' + diasPix + ' dias. Pague de novo para renovar por mais 1 mês.';
                         } else {
                             textoAtivo.textContent = '✅ Assinatura ativa via Pix' + (diasPix !== null ? ' (' + diasPix + ' dias restantes).' : '.');
                         }
@@ -189,7 +216,7 @@
                     } else {
                         textoAtivo.textContent = '✅ Sua assinatura está ativa. Você tem acesso completo ao app.';
                     }
-                } else if (perfil.planStatus === 'pending') {
+                } else if (perfil.planStatus === 'pending' && !escolhendoPlano) {
                     blocoPendente.hidden = false;
                 } else {
                     blocoAssinar.hidden = false;
@@ -200,13 +227,13 @@
                 }
             }
 
-            function iniciarAssinaturaCartao(botao) {
+            function iniciarAssinaturaCartao(botao, plano) {
                 const textoOriginal = botao.textContent;
                 botao.disabled = true;
                 botao.textContent = 'Preparando pagamento...';
                 errorBox.classList.remove('is-visible');
 
-                AppAuth.chamarApi('criarAssinatura').then(function (resultado) {
+                AppAuth.chamarApi('criarAssinatura', { plano: plano }).then(function (resultado) {
                     window.location.href = resultado.checkoutUrl;
                 }).catch(function (err) {
                     console.error(err);
@@ -225,7 +252,10 @@
                 AppAuth.chamarApi('criarPagamentoPix').then(function (dados) {
                     document.getElementById('pix-qr-img').src = 'data:image/png;base64,' + dados.qrCodeBase64;
                     document.getElementById('pix-copia-cola').value = dados.qrCode;
+                    pixAtivo = true;
                     blocoAssinar.hidden = true;
+                    blocoAtivo.hidden = true;
+                    blocoPendente.hidden = true;
                     blocoPix.hidden = false;
                     botao.disabled = false;
                     botao.textContent = textoOriginal;
@@ -255,12 +285,23 @@
                 if (forma === 'pix') {
                     iniciarPagamentoPix(this);
                 } else {
-                    iniciarAssinaturaCartao(this);
+                    iniciarAssinaturaCartao(this, forma === 'cartao-2m' ? '2m' : '3m');
                 }
             });
             document.getElementById('btn-assinar-de-novo').addEventListener('click', function () {
-                iniciarAssinaturaCartao(this);
+                iniciarAssinaturaCartao(this, ultimoPerfil && ultimoPerfil.planoEscolhido === '2m' ? '2m' : '3m');
             });
+            function voltarParaPlanos() {
+                pixAtivo = false;
+                escolhendoPlano = true;
+                pararPolling();
+                errorBox.classList.remove('is-visible');
+                blocoPix.hidden = true;
+                blocoPendente.hidden = true;
+                blocoAssinar.hidden = false;
+            }
+            document.getElementById('btn-trocar-plano').addEventListener('click', voltarParaPlanos);
+            document.getElementById('btn-voltar-pix').addEventListener('click', voltarParaPlanos);
             btnRenovarPix.addEventListener('click', function () {
                 blocoAtivo.hidden = true;
                 iniciarPagamentoPix(this);

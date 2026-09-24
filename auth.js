@@ -110,7 +110,8 @@
                     name: perfil.name || user.email,
                     role: perfil.role || 'user',
                     plan: perfil.plan || 'none',
-                    planStatus: perfil.planStatus || 'none'
+                    planStatus: perfil.planStatus || 'none',
+                    planoEscolhido: perfil.planoEscolhido || null
                 });
             }, function (err) {
                 console.error('Erro ao observar perfil:', err);
