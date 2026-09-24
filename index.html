@@ -557,8 +557,26 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then((reg) => console.log('Service Worker registrado:', reg.scope))
+                    .then((reg) => {
+                        console.log('Service Worker registrado:', reg.scope);
+                        // Procura versão nova sempre que o app volta pra tela
+                        // (celular que ficou aberto em segundo plano não perde atualização)
+                        document.addEventListener('visibilitychange', () => {
+                            if (document.visibilityState === 'visible') reg.update().catch(() => {});
+                        });
+                    })
                     .catch((err) => console.log('Service Worker erro:', err));
+
+                // Quando uma versão nova assume o controle, recarrega uma vez
+                // pra já mostrar os arquivos atualizados (só se já havia um SW antes)
+                if (navigator.serviceWorker.controller) {
+                    let recarregou = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        if (recarregou) return;
+                        recarregou = true;
+                        window.location.reload();
+                    });
+                }
             });
         }
     </script>

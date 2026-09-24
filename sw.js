@@ -1,4 +1,4 @@
-const CACHE_NAME = 'colhedoras-v8';
+const CACHE_NAME = 'colhedoras-v9';
 
 // Caminhos relativos ao local do sw.js: funcionam na raiz do domínio
 // e em subdiretórios (ex.: GitHub Pages em /Capacidade-Produtiva/)
@@ -8,11 +8,17 @@ const STATIC_ASSETS = [
     './login.html',
     './cadastro.html',
     './admin.html',
+    './planos.html',
+    './verificar-email.html',
+    './dashboard.html',
     './style.css',
     './auth.css',
+    './dashboard.css',
     './script.js',
     './calculadoras.js',
     './auth.js',
+    './dashboard.js',
+    './api-config.js',
     './firebase-config.js',
     './manifest.json',
     './icons/icon-192.png',

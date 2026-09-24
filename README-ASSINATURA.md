@@ -10,7 +10,7 @@
 
 O app libera acesso em 3 situações:
 
-1. **Teste grátis de 5 dias**, automático no cadastro, sem pedir cartão.
+1. **Teste grátis de 7 dias**, automático no cadastro, sem pedir cartão.
 2. **Cartão**: R$ 9,90/mês, cobrança recorrente pelo Mercado Pago.
 3. **Pix**: R$ 49,90 pagamento único, dá acesso por 3 meses (sem renovação
    automática — ao vencer, a pessoa paga de novo ou muda pro cartão).
@@ -132,14 +132,21 @@ const VALOR_PIX_TRIMESTRE = 49.9;     // Pix, pagamento único
 const DIAS_PIX_TRIMESTRE = 90;        // dias de acesso que o Pix libera
 ```
 
-Em `auth.js`:
+A duração do teste grátis (**7 dias**) fica no servidor, em
+`api/registrarUsuario.js`:
 
 ```js
-const DIAS_TESTE_GRATIS = 5;
+const DIAS_TESTE_GRATIS = 7;
 ```
 
-Depois rode `firebase deploy --only functions` (e reenvie os arquivos do
-front-end) para aplicar.
+Para mudar, altere esse número, faça `git push` e rode `vercel --prod`.
+O front-end (`auth.js`) não guarda esse valor: ele só lê a data de fim do
+teste (`trialEnd`) que o servidor gravou no perfil da pessoa. Quem já se
+cadastrou mantém o prazo que recebeu.
+
+Depois de alterar preços em `functions/index.js`, rode
+`firebase deploy --only functions` (e reenvie os arquivos do front-end)
+para aplicar.
 
 ## Como você (admin) sempre tem acesso
 
