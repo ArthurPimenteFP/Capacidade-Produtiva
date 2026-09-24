@@ -9,7 +9,7 @@ const { getAdmin } = require('./_lib/firebaseAdmin');
 const cpfLib = require('./_lib/cpf');
 
 const DIAS_TESTE_GRATIS = 7;
-const MAX_CADASTROS_POR_IP_POR_DIA = 5;
+const MAX_CADASTROS_POR_IP_POR_DIA = 10;
 
 module.exports = async function (req, res) {
     if (aplicarCors(req, res)) return;
