@@ -1,4 +1,12 @@
-# Configurando as assinaturas (Mercado Pago + Cloud Functions)
+# Configurando as assinaturas (Mercado Pago + Vercel)
+
+> ⚠️ **Atualização:** o backend (as funções que conversam com o Mercado
+> Pago) não está mais no Firebase Functions — foi migrado pra Vercel, pra
+> não precisar do plano pago (Blaze) do Firebase. Siga o
+> **`README-VERCEL.md`** para publicar a API. Este arquivo abaixo continua
+> valendo para tudo que é do Firebase (login, Firestore, regras) — só os
+> passos que mencionam `firebase deploy --only functions` e
+> `firebase functions:secrets:set` não se aplicam mais.
 
 O app libera acesso em 3 situações:
 

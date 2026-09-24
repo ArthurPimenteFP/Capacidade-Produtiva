@@ -129,6 +129,37 @@
         });
     }
 
+    // --- Chama uma das funções hospedadas na Vercel (api/*.js), no lugar
+    // do antigo Cloud Functions. Sempre manda o token de login atual no
+    // cabeçalho Authorization, pra função na Vercel confirmar quem está
+    // chamando (equivalente ao "request.auth" que o Firebase dava de graça). ---
+    function chamarApi(nome, dados) {
+        if (!window.API_BASE_URL) {
+            return Promise.reject(new Error('API_BASE_URL não configurada. Veja api-config.js.'));
+        }
+        const usuario = auth.currentUser;
+        if (!usuario) {
+            return Promise.reject(new Error('Você precisa estar logado.'));
+        }
+        return usuario.getIdToken().then(function (token) {
+            return fetch(window.API_BASE_URL + '/api/' + nome, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(dados || {})
+            });
+        }).then(function (resp) {
+            return resp.json().catch(function () { return {}; }).then(function (data) {
+                if (!resp.ok) {
+                    throw new Error(data.error || 'Erro ao chamar o servidor.');
+                }
+                return data;
+            });
+        });
+    }
+
     // --- Calcula quantos dias faltam do teste grátis (0 se já acabou) ---
     function diasRestantesTeste(perfil) {
         if (!perfil.trialEnd) return 0;
@@ -186,7 +217,7 @@
     window.AppAuth = {
         auth: auth,
         db: db,
-        functions: firebase.functions ? firebase.app().functions('southamerica-east1') : null,
+        chamarApi: chamarApi,
         registrar: registrar,
         login: login,
         logout: logout,

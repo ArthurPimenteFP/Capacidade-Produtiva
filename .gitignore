@@ -7,3 +7,13 @@ desktop.ini
 .vscode/
 *.swp
 *.swo
+
+# Dependências e chaves sensíveis
+node_modules/
+.vercel/
+*.json.serviceaccount
+firebase-service-account*.json
+.env
+.env.local
+
+.vercel

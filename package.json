@@ -1,0 +1,8 @@
+{
+  "name": "capacidade-produtiva-api",
+  "description": "Backend de assinaturas (Mercado Pago) do Controle de Colhedoras, hospedado na Vercel",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
+}

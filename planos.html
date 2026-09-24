@@ -113,8 +113,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-functions-compat.js"></script>
     <script src="firebase-config.js"></script>
+    <script src="api-config.js"></script>
     <script src="auth.js"></script>
     <script>
         (function () {
@@ -206,9 +206,8 @@
                 botao.textContent = 'Preparando pagamento...';
                 errorBox.classList.remove('is-visible');
 
-                const criarAssinatura = AppAuth.functions.httpsCallable('criarAssinatura');
-                criarAssinatura().then(function (resultado) {
-                    window.location.href = resultado.data.checkoutUrl;
+                AppAuth.chamarApi('criarAssinatura').then(function (resultado) {
+                    window.location.href = resultado.checkoutUrl;
                 }).catch(function (err) {
                     console.error(err);
                     mostrarErro(err.message || 'Não foi possível iniciar o pagamento. Tente novamente.');
@@ -223,9 +222,7 @@
                 botao.textContent = 'Gerando QR code...';
                 errorBox.classList.remove('is-visible');
 
-                const criarPagamentoPix = AppAuth.functions.httpsCallable('criarPagamentoPix');
-                criarPagamentoPix().then(function (resultado) {
-                    const dados = resultado.data;
+                AppAuth.chamarApi('criarPagamentoPix').then(function (dados) {
                     document.getElementById('pix-qr-img').src = 'data:image/png;base64,' + dados.qrCodeBase64;
                     document.getElementById('pix-copia-cola').value = dados.qrCode;
                     blocoAssinar.hidden = true;
@@ -233,10 +230,9 @@
                     botao.disabled = false;
                     botao.textContent = textoOriginal;
 
-                    const consultarStatusPix = AppAuth.functions.httpsCallable('consultarStatusPix');
                     intervaloPix = setInterval(function () {
-                        consultarStatusPix({ paymentId: dados.paymentId }).then(function (r) {
-                            if (r.data.status === 'approved') {
+                        AppAuth.chamarApi('consultarStatusPix', { paymentId: dados.paymentId }).then(function (r) {
+                            if (r.status === 'approved') {
                                 pararPolling();
                                 document.getElementById('pix-status').textContent = 'Pagamento confirmado! Liberando acesso...';
                             }
@@ -251,8 +247,8 @@
             }
 
             document.getElementById('btn-assinar').addEventListener('click', function () {
-                if (!AppAuth.functions) {
-                    mostrarErro('Erro de configuração: Cloud Functions não carregou.');
+                if (!window.API_BASE_URL) {
+                    mostrarErro('Erro de configuração: API_BASE_URL não definida (veja api-config.js).');
                     return;
                 }
                 const forma = document.querySelector('input[name="forma-pagamento"]:checked').value;
@@ -281,8 +277,7 @@
                 if (!confirm('Tem certeza que deseja cancelar sua assinatura? Você perderá o acesso ao app.')) return;
                 const btn = this;
                 btn.disabled = true;
-                const cancelarAssinatura = AppAuth.functions.httpsCallable('cancelarAssinatura');
-                cancelarAssinatura().then(function () {
+                AppAuth.chamarApi('cancelarAssinatura').then(function () {
                     showToast('Assinatura cancelada.');
                 }).catch(function (err) {
                     console.error(err);

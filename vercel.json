@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/expirarPix",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
