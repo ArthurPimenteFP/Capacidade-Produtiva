@@ -510,7 +510,7 @@
                 if (perfil.role === 'admin') {
                     document.getElementById('admin-link').style.display = 'inline-flex';
                 }
-                if (perfil.plan === 'premium') {
+                if (perfil.plan === 'premium' || perfil.plan === 'trial') {
                     document.getElementById('plano-link').style.display = 'inline-flex';
                 }
                 const diasPix = AppAuth.diasRestantesPix(perfil);
