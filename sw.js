@@ -1,4 +1,4 @@
-const CACHE_NAME = 'colhedoras-v10';
+const CACHE_NAME = 'colhedoras-v11';
 
 // Caminhos relativos ao local do sw.js: funcionam na raiz do domínio
 // e em subdiretórios (ex.: GitHub Pages em /Capacidade-Produtiva/)

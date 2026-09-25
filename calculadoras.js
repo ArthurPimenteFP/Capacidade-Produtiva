@@ -333,6 +333,104 @@
     cap.btnClear.addEventListener('click', handleCapClear);
 
     // ===========================
+    // ESTIMATIVA
+    // ===========================
+    const STORAGE_KEY_EST = 'estimativa_campos';
+    const ESPACAMENTOS_VALIDOS = ['3.333', '4.166', '6.666'];
+
+    const est = {
+        form: $('est-form'),
+        error: $('est-error'),
+        result: $('est-result'),
+        resultValue: $('est-result-value'),
+        resultHint: $('est-result-hint'),
+        btnClear: $('est-clear'),
+        densidade: $('est-densidade'),
+        metros: $('est-metros'),
+        espacamento: $('est-espacamento'),
+    };
+    const estFields = ['densidade', 'metros', 'espacamento'];
+
+    // Estimativa = (Densidade do caixote ÷ Metros percorridos) × Espaçamento
+    function calcEstimativa({ densidade, metros, espacamento }) {
+        return (densidade / metros) * espacamento;
+    }
+
+    function saveEst() {
+        const data = {};
+        estFields.forEach((f) => (data[f] = est[f].value));
+        saveJSON(STORAGE_KEY_EST, data);
+    }
+
+    function loadEst() {
+        const data = loadJSON(STORAGE_KEY_EST);
+        if (!data) return;
+        estFields.forEach((f) => {
+            if (typeof data[f] !== 'string') return;
+            if (f === 'espacamento' && !ESPACAMENTOS_VALIDOS.includes(data[f])) return;
+            est[f].value = data[f];
+        });
+    }
+
+    function resetEstResult() {
+        est.result.classList.add('is-empty');
+        est.result.classList.remove('is-stale');
+        est.resultValue.textContent = '—';
+        est.resultHint.textContent = 'Preencha os campos e toque em Calcular';
+    }
+
+    function handleEstSubmit(e) {
+        e.preventDefault();
+
+        const values = validate(
+            [
+                { key: 'densidade', input: est.densidade, ok: isPositive, message: 'Informe a densidade do caixote (maior que zero).' },
+                { key: 'metros', input: est.metros, ok: isPositive, message: 'Informe os metros percorridos (maior que zero).' },
+                {
+                    key: 'espacamento',
+                    input: est.espacamento,
+                    parse: (el) => (ESPACAMENTOS_VALIDOS.includes(el.value) ? parseFloat(el.value) : NaN),
+                    ok: isPositive,
+                    message: 'Selecione o espaçamento.',
+                },
+            ],
+            est.error
+        );
+        if (!values) return;
+
+        const total = calcEstimativa(values);
+
+        est.resultValue.innerHTML = `${formatDecimal(total)}<span class="unit">t/ha</span>`;
+        est.resultHint.textContent = '';
+        est.result.classList.remove('is-empty', 'is-stale');
+        popValue(est.resultValue);
+        saveEst();
+        est.result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function handleEstClear() {
+        est.form.reset();
+        removeKey(STORAGE_KEY_EST);
+        clearInvalidState(est.form, est.error);
+        resetEstResult();
+        est.densidade.focus();
+    }
+
+    ['densidade', 'metros'].forEach((f) => {
+        est[f].addEventListener('input', () => sanitizeNumericInput(est[f]));
+    });
+    estFields.forEach((f) => {
+        const evt = f === 'espacamento' ? 'change' : 'input';
+        est[f].addEventListener(evt, () => {
+            est[f].classList.remove('is-invalid');
+            if (!est.result.classList.contains('is-empty')) est.result.classList.add('is-stale');
+            saveEst();
+        });
+    });
+    est.form.addEventListener('submit', handleEstSubmit);
+    est.btnClear.addEventListener('click', handleEstClear);
+
+    // ===========================
     // TEMPO DE COLHEITA
     // ===========================
     const col = {
@@ -453,6 +551,7 @@
     // ---------------------------
     function init() {
         loadCap();
+        loadEst();
         loadCol();
         col.datahora.value = formatDateTimeBR(nowBrasilia());
     }

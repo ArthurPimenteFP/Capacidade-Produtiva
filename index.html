@@ -115,6 +115,15 @@
                 </svg>
                 <span>Tempo de Colheita</span>
             </button>
+            <button type="button" class="tab-btn" role="tab" id="tab-estimativa" data-tab="estimativa"
+                aria-controls="panel-estimativa" aria-selected="false" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 21l-4.35-4.35" />
+                    <circle cx="11" cy="11" r="8" />
+                </svg>
+                <span>Estimativa</span>
+            </button>
         </nav>
 
         <!-- Tab: Colhedoras (conteúdo original) -->
@@ -484,6 +493,63 @@
                             <dd><span class="result-list__value" id="col-hah">—</span></dd>
                         </div>
                     </dl>
+                </section>
+            </div>
+        </div>
+
+        <!-- Tab: Estimativa -->
+        <div class="tab-panel tab-panel--calc" id="panel-estimativa" role="tabpanel" aria-labelledby="tab-estimativa"
+            hidden>
+            <div class="calc-layout">
+                <section class="calc-card" id="est-section">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 21l-4.35-4.35" />
+                            <circle cx="11" cy="11" r="8" />
+                        </svg>
+                        Estimativa
+                    </h2>
+                    <form id="est-form" autocomplete="off" novalidate>
+                        <div class="calc-grid">
+                            <div class="form-group">
+                                <label for="est-densidade">Densidade do caixote (kg)</label>
+                                <input type="text" id="est-densidade" inputmode="decimal" placeholder="Ex: 18">
+                            </div>
+                            <div class="form-group">
+                                <label for="est-metros">Metros percorridos (m)</label>
+                                <input type="text" id="est-metros" inputmode="decimal" placeholder="Ex: 10">
+                            </div>
+                            <div class="form-group form-group--full">
+                                <label for="est-espacamento">Espaçamento</label>
+                                <select id="est-espacamento" required>
+                                    <option value="" disabled selected>Selecione</option>
+                                    <option value="3.333">3,333</option>
+                                    <option value="4.166">4,166</option>
+                                    <option value="6.666">6,666</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="calc-error" id="est-error" role="alert" hidden></p>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn--primary" id="est-calc">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Calcular
+                            </button>
+                            <button type="button" class="btn btn--secondary" id="est-clear">Limpar</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="calc-result is-empty" id="est-result" aria-live="polite">
+                    <div class="result-hero">
+                        <span class="result-hero__label">Estimativa de produtividade</span>
+                        <div class="result-hero__value" id="est-result-value">—</div>
+                        <span class="result-hero__hint" id="est-result-hint">Preencha os campos e toque em Calcular</span>
+                    </div>
                 </section>
             </div>
         </div>
