@@ -176,6 +176,7 @@
         colhedoras: $('panel-colhedoras'),
         capacidade: $('panel-capacidade'),
         colheita: $('panel-colheita'),
+        estimativa: $('panel-estimativa'),
     };
 
     function activateTab(name, focusTab) {

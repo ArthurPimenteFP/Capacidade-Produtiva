@@ -48,6 +48,6 @@ Parâmetros internos: 15 h de colheita por dia e divisor 6,667.
 
 ## Atualização do PWA
 
-Ao alterar arquivos do app, incremente `CACHE_NAME` em `sw.js` (atualmente `colhedoras-v11`)
+Ao alterar arquivos do app, incremente `CACHE_NAME` em `sw.js` (atualmente `colhedoras-v12`)
 e mantenha a lista `STATIC_ASSETS` em dia (inclui `calculadoras.js`, `planos.html` e as telas de admin).
 O app também se atualiza sozinho: ao voltar pra ele (ou abrir), procura uma versão nova do `sw.js` e recarrega a página quando encontra.
