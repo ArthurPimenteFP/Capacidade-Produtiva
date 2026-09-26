@@ -1,6 +1,8 @@
 // --- Exclui a conta de um usuário (login + dados). Só um admin pode chamar. ---
-// Apaga: o login no Firebase Authentication, o perfil em "users/{uid}" e os
-// dados salvos em "userdata/{uid}". Não dá pra desfazer.
+// Apaga: o login no Firebase Authentication, o perfil em "users/{uid}", os
+// dados salvos em "userdata/{uid}", o pedido de ajuda em "pedidosVerificacao/{uid}"
+// (se existir) e os tokens de notificação em "pushTokens/{uid}/tokens/*".
+// Não dá pra desfazer.
 const { aplicarCors } = require('./_lib/cors');
 const { verificarLogin } = require('./_lib/verificarLogin');
 const { getAdmin } = require('./_lib/firebaseAdmin');
@@ -54,12 +56,28 @@ module.exports = async function (req, res) {
         }
     }
 
-    // Apaga os dados no Firestore (perfil + cálculos salvos)
+    // Apaga os dados no Firestore (perfil + cálculos salvos + pedido de ajuda
+    // de verificação de e-mail, se houver + tokens de notificação salvos)
     try {
         const batch = db.batch();
         batch.delete(db.collection('users').doc(uidParaExcluir));
         batch.delete(db.collection('userdata').doc(uidParaExcluir));
+        batch.delete(db.collection('pedidosVerificacao').doc(uidParaExcluir));
         await batch.commit();
+
+        // A subcoleção pushTokens/{uid}/tokens pode ter vários documentos
+        // (um por aparelho/navegador), então não dá pra apagar com um único
+        // .delete() no doc pai — precisa listar e apagar cada token.
+        const tokensSnap = await db
+            .collection('pushTokens')
+            .doc(uidParaExcluir)
+            .collection('tokens')
+            .get();
+        if (!tokensSnap.empty) {
+            const batchTokens = db.batch();
+            tokensSnap.forEach((doc) => batchTokens.delete(doc.ref));
+            await batchTokens.commit();
+        }
     } catch (err) {
         console.error('Erro ao excluir dados no Firestore:', err);
         res.status(500).json({ error: 'O login foi excluído, mas houve um erro ao apagar os dados salvos. Avise o suporte.' });
