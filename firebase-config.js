@@ -27,4 +27,4 @@ window.FIREBASE_CONFIG = {
 // Firebase Console > Configurações do projeto > Cloud Messaging >
 // "Certificados push da Web" > Gerar par de chaves. Cole o valor que
 // aparecer (uma string longa) abaixo, entre as aspas.
-window.FIREBASE_VAPID_KEY = "COLE_AQUI_A_CHAVE_VAPID_GERADA_NO_FIREBASE";
+window.FIREBASE_VAPID_KEY = "BJhDClA-fWFpO7K-GBzTQOJFYzeoiuUiVfAWjQQ8j8GQHoLtagR8sdo_75V9rQky1tGdCuPWdEfw07TEv4XQG4E";
