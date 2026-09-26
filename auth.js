@@ -63,7 +63,7 @@
                         return cred.user.sendEmailVerification().catch(function (e) { console.error(e); });
                     })
                     .then(function () {
-                        return registrarSessaoNesteAparelho(cred.user.uid);
+                        return travarSessaoUnica();
                     })
                     .then(function () {
                         registrando = false;
@@ -86,7 +86,13 @@
                 throw new Error(traduzErro(err));
             })
             .then(function (cred) {
-                return registrarSessaoNesteAparelho(cred.user.uid).then(function () { return cred; });
+                return travarSessaoUnica()
+                    .then(function () { return cred; })
+                    .catch(function (err) {
+                        // Conta já em uso em outro aparelho: desfaz o login
+                        // deste aparelho e devolve o aviso pra tela mostrar.
+                        return auth.signOut().then(function () { throw err; });
+                    });
             });
     }
 
@@ -100,46 +106,24 @@
     }
 
     // --- Logout ---
+    // Primeiro avisa o servidor pra liberar a trava de sessão única (assim
+    // outro aparelho já pode logar em seguida) e só depois desloga o
+    // Firebase Auth deste aparelho. Se o aviso ao servidor falhar (ex.: sem
+    // internet), desloga mesmo assim — não trava o botão de sair.
     function logout() {
-        return auth.signOut();
+        return chamarApi('encerrarSessao', {})
+            .catch(function (e) { console.error('Erro ao encerrar sessão no servidor:', e); })
+            .then(function () { return auth.signOut(); });
     }
 
     // --- Controle de "1 sessão por vez" (exceto administradores) ---
-    // Cada aparelho guarda seu próprio "carimbo" (sessionId) no localStorage.
-    // No login/cadastro, o app sobrescreve o sessionId salvo no Firestore
-    // com um novo valor. Qualquer OUTRO aparelho que já estivesse logado
-    // (guardando o valor antigo) percebe a diferença em tempo real (dentro
-    // de exigirLogin, mais abaixo) e é deslogado sozinho. Isso impede que
-    // a mesma conta de usuário comum fique aberta em dois aparelhos ao
-    // mesmo tempo (compartilhamento de conta). Administradores são isentos:
-    // podem usar a mesma conta em vários aparelhos simultaneamente.
-    function chaveSessaoLocal(uid) {
-        return 'colhedoras_sessionId_' + uid;
-    }
-
-    function gerarSessionId() {
-        if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
-        return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
-    }
-
-    // Marca ESTE aparelho como o "dono" da sessão atual da conta. Chamado
-    // logo depois de um login ou cadastro bem-sucedido.
-    function registrarSessaoNesteAparelho(uid) {
-        return db.collection('users').doc(uid).get({ source: 'server' }).then(function (doc) {
-            if (doc.exists && doc.data().role === 'admin') {
-                console.log('[sessão] Conta admin — isenta da trava de sessão única.');
-                return;
-            }
-            const novoId = gerarSessionId();
-            console.log('[sessão] Gravando novo sessionId neste aparelho:', novoId, '| uid:', uid);
-            localStorage.setItem(chaveSessaoLocal(uid), novoId);
-            return db.collection('users').doc(uid).set({ sessionId: novoId }, { merge: true })
-                .then(function () {
-                    console.log('[sessão] sessionId gravado com SUCESSO no Firestore:', novoId);
-                });
-        }).catch(function (e) {
-            console.error('[sessão] ERRO ao registrar sessão do aparelho:', e);
-        });
+    // Depois de um login/cadastro, pergunta pro SERVIDOR (api/verificarSessao.js,
+    // que usa o Admin SDK e por isso nunca falha por causa das regras do
+    // Firestore) se esta conta já está sendo usada em outro aparelho. Se
+    // estiver, a chamada é rejeitada e o login deste aparelho é desfeito
+    // (veja login()/registrar() acima). Administradores nunca são bloqueados.
+    function travarSessaoUnica() {
+        return chamarApi('verificarSessao', {});
     }
 
     // --- Busca o perfil (nome/role/plano) do usuário logado no Firestore ---
@@ -175,27 +159,6 @@
             }
             db.collection('users').doc(user.uid).onSnapshot(function (doc) {
                 const perfil = doc.exists ? doc.data() : {};
-
-                console.log('[sessão] Perfil recebido do Firestore. sessionId remoto:', perfil.sessionId,
-                    '| sessionId local:', localStorage.getItem(chaveSessaoLocal(user.uid)),
-                    '| role:', perfil.role);
-
-                // Sessão única (exceto admin): se o sessionId salvo no Firestore
-                // não bate com o que este aparelho guardou localmente, é porque
-                // a conta foi logada em outro aparelho depois deste — desloga
-                // este aparelho e avisa na tela de login.
-                if (perfil.role !== 'admin' && perfil.sessionId) {
-                    const sessaoLocal = localStorage.getItem(chaveSessaoLocal(user.uid));
-                    if (sessaoLocal && sessaoLocal !== perfil.sessionId) {
-                        console.warn('[sessão] sessionId diferente — deslogando este aparelho.');
-                        auth.signOut().then(function () {
-                            window.location.href = 'login.html?motivo=outro_dispositivo';
-                        });
-                        return;
-                    }
-                } else {
-                    console.log('[sessão] Sem checagem: admin, ou perfil ainda sem sessionId.');
-                }
 
                 callback({
                     uid: user.uid,

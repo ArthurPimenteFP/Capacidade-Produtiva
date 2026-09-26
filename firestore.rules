@@ -33,7 +33,8 @@ service cloud.firestore {
              request.resource.data.get('pixPaymentId', null) == resource.data.get('pixPaymentId', null) &&
              request.resource.data.get('cpfMascarado', null) == resource.data.get('cpfMascarado', null) &&
              request.resource.data.get('exigeVerificacaoEmail', null) == resource.data.get('exigeVerificacaoEmail', null) &&
-             request.resource.data.get('planoEscolhido', null) == resource.data.get('planoEscolhido', null);
+             request.resource.data.get('planoEscolhido', null) == resource.data.get('planoEscolhido', null) &&
+             request.resource.data.get('sessaoAtiva', null) == resource.data.get('sessaoAtiva', null);
     }
 
     // Perfis dos usuários (nome, e-mail, role, plano)
