@@ -125,13 +125,20 @@
     // Marca ESTE aparelho como o "dono" da sessão atual da conta. Chamado
     // logo depois de um login ou cadastro bem-sucedido.
     function registrarSessaoNesteAparelho(uid) {
-        return db.collection('users').doc(uid).get().then(function (doc) {
-            if (doc.exists && doc.data().role === 'admin') return; // admin não entra nessa regra
+        return db.collection('users').doc(uid).get({ source: 'server' }).then(function (doc) {
+            if (doc.exists && doc.data().role === 'admin') {
+                console.log('[sessão] Conta admin — isenta da trava de sessão única.');
+                return;
+            }
             const novoId = gerarSessionId();
+            console.log('[sessão] Gravando novo sessionId neste aparelho:', novoId, '| uid:', uid);
             localStorage.setItem(chaveSessaoLocal(uid), novoId);
-            return db.collection('users').doc(uid).set({ sessionId: novoId }, { merge: true });
+            return db.collection('users').doc(uid).set({ sessionId: novoId }, { merge: true })
+                .then(function () {
+                    console.log('[sessão] sessionId gravado com SUCESSO no Firestore:', novoId);
+                });
         }).catch(function (e) {
-            console.error('Erro ao registrar sessão do aparelho:', e);
+            console.error('[sessão] ERRO ao registrar sessão do aparelho:', e);
         });
     }
 
@@ -169,6 +176,10 @@
             db.collection('users').doc(user.uid).onSnapshot(function (doc) {
                 const perfil = doc.exists ? doc.data() : {};
 
+                console.log('[sessão] Perfil recebido do Firestore. sessionId remoto:', perfil.sessionId,
+                    '| sessionId local:', localStorage.getItem(chaveSessaoLocal(user.uid)),
+                    '| role:', perfil.role);
+
                 // Sessão única (exceto admin): se o sessionId salvo no Firestore
                 // não bate com o que este aparelho guardou localmente, é porque
                 // a conta foi logada em outro aparelho depois deste — desloga
@@ -176,11 +187,14 @@
                 if (perfil.role !== 'admin' && perfil.sessionId) {
                     const sessaoLocal = localStorage.getItem(chaveSessaoLocal(user.uid));
                     if (sessaoLocal && sessaoLocal !== perfil.sessionId) {
+                        console.warn('[sessão] sessionId diferente — deslogando este aparelho.');
                         auth.signOut().then(function () {
                             window.location.href = 'login.html?motivo=outro_dispositivo';
                         });
                         return;
                     }
+                } else {
+                    console.log('[sessão] Sem checagem: admin, ou perfil ainda sem sessionId.');
                 }
 
                 callback({
