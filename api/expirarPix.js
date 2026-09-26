@@ -3,7 +3,7 @@
 // CRON_SECRET - a Vercel manda esse valor sozinha no cabeçalho
 // Authorization quando aciona o cron, então ninguém de fora consegue
 // chamar essa URL manualmente. ---
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { getAdmin } = require('../lib/firebaseAdmin');
 
 module.exports = async function (req, res) {
     const authHeader = req.headers.authorization || '';

@@ -1,8 +1,8 @@
 // --- Cria um pagamento único via Pix (R$ 15,90 = 1 mês, sem renovação automática) ---
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
-const { acessoPagoAtivo } = require('./_lib/acessoPago');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
+const { acessoPagoAtivo } = require('../lib/acessoPago');
 
 const VALOR_PIX_MENSAL = 15.9;
 const NOME_PLANO = 'Controle de Colhedoras - Plano Premium';

@@ -1,8 +1,8 @@
 // --- Consulta o status de um pagamento Pix (o front usa isso pra saber na
 // hora se a pessoa já pagou, sem precisar esperar o webhook) ---
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { aprovarPagamentoPix } = require('./_lib/aprovarPagamentoPix');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { aprovarPagamentoPix } = require('../lib/aprovarPagamentoPix');
 
 module.exports = async function (req, res) {
     if (aplicarCors(req, res)) return;

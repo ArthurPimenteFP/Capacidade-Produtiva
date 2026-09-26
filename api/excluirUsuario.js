@@ -3,9 +3,9 @@
 // dados salvos em "userdata/{uid}", o pedido de ajuda em "pedidosVerificacao/{uid}"
 // (se existir) e os tokens de notificação em "pushTokens/{uid}/tokens/*".
 // Não dá pra desfazer.
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
 
 module.exports = async function (req, res) {
     if (aplicarCors(req, res)) return;

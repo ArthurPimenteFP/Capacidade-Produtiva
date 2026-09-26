@@ -6,9 +6,9 @@
 // desatualizado e o botão "Confirmar e-mail" continua aparecendo pra ela no
 // painel, mesmo já estando verificada de verdade. Essa API resolve isso
 // direto na fonte (Firebase Auth), sem depender de ninguém reabrir nada.
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
 
 module.exports = async function (req, res) {
     if (aplicarCors(req, res)) return;

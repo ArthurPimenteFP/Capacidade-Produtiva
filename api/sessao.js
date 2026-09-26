@@ -10,9 +10,9 @@
 // do Firestore) — assim a checagem/gravação nunca falha por causa de
 // permissão, diferente da tentativa anterior de gravar isso direto do
 // navegador.
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
 
 async function verificar(req, res) {
     let usuario;

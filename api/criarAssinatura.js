@@ -1,8 +1,8 @@
 // --- Cria uma assinatura recorrente e devolve o link de pagamento do Mercado Pago ---
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
-const { acessoPagoAtivo } = require('./_lib/acessoPago');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
+const { acessoPagoAtivo } = require('../lib/acessoPago');
 
 // Planos de cartão (recorrência a cada N meses). O valor é decidido aqui no
 // servidor: o navegador só manda a chave do plano ('2m' ou '3m').

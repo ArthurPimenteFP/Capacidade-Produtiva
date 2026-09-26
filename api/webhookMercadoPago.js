@@ -3,8 +3,8 @@
 // Esta rota é PÚBLICA de propósito (quem chama é o servidor do Mercado
 // Pago, não uma pessoa logada) - por isso não passa por verificarLogin.
 // Configure esta URL no painel do Mercado Pago > Webhooks.
-const { getAdmin } = require('./_lib/firebaseAdmin');
-const { aprovarPagamentoPix } = require('./_lib/aprovarPagamentoPix');
+const { getAdmin } = require('../lib/firebaseAdmin');
+const { aprovarPagamentoPix } = require('../lib/aprovarPagamentoPix');
 
 module.exports = async function (req, res) {
     if (req.method !== 'POST' && req.method !== 'GET') {

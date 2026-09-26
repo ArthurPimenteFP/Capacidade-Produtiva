@@ -4,9 +4,9 @@
 // só exige estar logado — mas, pra evitar spam, só manda a notificação se
 // existir de fato um pedido de ajuda pendente (documento em
 // "pedidosVerificacao/{uid}" com atendido = false) criado pela mesma pessoa.
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
 
 module.exports = async function (req, res) {
     if (aplicarCors(req, res)) return;

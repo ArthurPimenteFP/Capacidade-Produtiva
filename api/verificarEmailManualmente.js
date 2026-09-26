@@ -3,9 +3,9 @@
 // (ex.: alguns iPhones não abrem o link corretamente). Como o "emailVerified"
 // é um dado do Firebase Authentication (não do Firestore), só o Admin SDK,
 // rodando no servidor, pode alterá-lo — por isso essa API existe.
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
 
 module.exports = async function (req, res) {
     if (aplicarCors(req, res)) return;

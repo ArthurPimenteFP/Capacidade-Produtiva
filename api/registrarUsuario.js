@@ -3,10 +3,10 @@
 // Isto roda no SERVIDOR de propósito: se o navegador criasse o perfil, a
 // pessoa poderia editar a data de fim do teste ou pular a checagem de CPF.
 const crypto = require('crypto');
-const { aplicarCors } = require('./_lib/cors');
-const { verificarLogin } = require('./_lib/verificarLogin');
-const { getAdmin } = require('./_lib/firebaseAdmin');
-const cpfLib = require('./_lib/cpf');
+const { aplicarCors } = require('../lib/cors');
+const { verificarLogin } = require('../lib/verificarLogin');
+const { getAdmin } = require('../lib/firebaseAdmin');
+const cpfLib = require('../lib/cpf');
 
 const DIAS_TESTE_GRATIS = 7;
 const MAX_CADASTROS_POR_IP_POR_DIA = 25;
