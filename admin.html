@@ -357,15 +357,22 @@
                         btn.disabled = true;
                         AppAuth.chamarApi('verificarEmailManualmente', { uid: uid })
                             .then(function () {
-                                return AppAuth.db.collection('pedidosVerificacao').doc(uid).update({ atendido: true });
-                            })
-                            .then(function () {
                                 showToast('Acesso liberado! A pessoa já pode entrar no app.');
+                                return AppAuth.db.collection('pedidosVerificacao').doc(uid).delete();
                             })
                             .catch(function (err) {
                                 console.error(err);
+                                // A conta já não existe mais no Authentication (foi excluída
+                                // direto pelo console, sem passar pela função de exclusão).
+                                // Não tem mais o que liberar: só apaga o pedido órfão pra
+                                // sumir da lista, em vez de deixar o card preso pra sempre.
+                                if (err.message === 'Usuário não encontrado.') {
+                                    showToast('Essa conta já foi excluída. Removendo o aviso...');
+                                    return AppAuth.db.collection('pedidosVerificacao').doc(uid).delete();
+                                }
                                 showToast(err.message || 'Erro ao liberar o acesso.');
                                 btn.disabled = false;
+                                throw err;
                             });
                     });
                     linha.appendChild(btn);
