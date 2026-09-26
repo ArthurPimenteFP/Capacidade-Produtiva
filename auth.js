@@ -111,19 +111,19 @@
     // Firebase Auth deste aparelho. Se o aviso ao servidor falhar (ex.: sem
     // internet), desloga mesmo assim — não trava o botão de sair.
     function logout() {
-        return chamarApi('encerrarSessao', {})
+        return chamarApi('sessao', { acao: 'encerrar' })
             .catch(function (e) { console.error('Erro ao encerrar sessão no servidor:', e); })
             .then(function () { return auth.signOut(); });
     }
 
     // --- Controle de "1 sessão por vez" (exceto administradores) ---
-    // Depois de um login/cadastro, pergunta pro SERVIDOR (api/verificarSessao.js,
+    // Depois de um login/cadastro, pergunta pro SERVIDOR (api/sessao.js,
     // que usa o Admin SDK e por isso nunca falha por causa das regras do
     // Firestore) se esta conta já está sendo usada em outro aparelho. Se
     // estiver, a chamada é rejeitada e o login deste aparelho é desfeito
     // (veja login()/registrar() acima). Administradores nunca são bloqueados.
     function travarSessaoUnica() {
-        return chamarApi('verificarSessao', {});
+        return chamarApi('sessao', { acao: 'verificar' });
     }
 
     // --- Busca o perfil (nome/role/plano) do usuário logado no Firestore ---
