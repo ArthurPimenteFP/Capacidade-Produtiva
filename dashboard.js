@@ -157,7 +157,67 @@
 
     window.AppAuth.exigirLogin(carregarDados);
 
-    document.getElementById('btn-export-pdf').addEventListener('click', function () {
-        window.print();
+    // Gera o PDF de verdade no navegador (em vez de usar window.print()).
+    // O "salvar como PDF" do sistema, em muitos celulares, falha ou gera um
+    // arquivo de 0kb quando a página tem gráficos em <canvas>. Desenhando o
+    // PDF nós mesmos (html2canvas + jsPDF), o arquivo sai igual em qualquer
+    // aparelho.
+    document.getElementById('btn-export-pdf').addEventListener('click', async function () {
+        const btn = this;
+        const label = btn.querySelector('span');
+        const textoOriginal = label.textContent;
+
+        if (typeof html2canvas === 'undefined' || !window.jspdf) {
+            alert('Não foi possível carregar o gerador de PDF. Confira sua internet e tente novamente.');
+            return;
+        }
+
+        btn.disabled = true;
+        label.textContent = 'Gerando PDF...';
+
+        try {
+            const canvas = await html2canvas(document.getElementById('dash-content'), {
+                scale: Math.min(2, window.devicePixelRatio || 1.5),
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                onclone: (clonedDoc) => {
+                    const cabecalho = clonedDoc.querySelector('.dash-print-header');
+                    if (cabecalho) cabecalho.style.display = 'block';
+                },
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.92);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let alturaRestante = imgHeight;
+            let posicaoY = 0;
+
+            pdf.addImage(imgData, 'JPEG', 0, posicaoY, imgWidth, imgHeight);
+            alturaRestante -= pageHeight;
+
+            while (alturaRestante > 0) {
+                posicaoY = alturaRestante - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, posicaoY, imgWidth, imgHeight);
+                alturaRestante -= pageHeight;
+            }
+
+            const hoje = new Date();
+            const dataArquivo = [hoje.getFullYear(), hoje.getMonth() + 1, hoje.getDate()]
+                .map((n) => String(n).padStart(2, '0'))
+                .join('-');
+            pdf.save(`colhedoras-${dataArquivo}.pdf`);
+        } catch (err) {
+            console.error(err);
+            alert('Não foi possível gerar o PDF agora. Tente novamente em alguns segundos.');
+        } finally {
+            btn.disabled = false;
+            label.textContent = textoOriginal;
+        }
     });
 })();
