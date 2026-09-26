@@ -42,6 +42,12 @@
 
         <div class="admin-page">
             <p class="auth-error" id="admin-error" role="alert"></p>
+
+            <div id="admin-ajuda-banner" hidden style="background:#fff4e5;border:1px solid #f0b95c;border-radius:var(--radius-md,10px);padding:14px 16px;margin-bottom:16px;">
+                <strong style="display:block;margin-bottom:8px;color:#8a5a00;">⚠️ Pessoas que não conseguiram confirmar o e-mail</strong>
+                <div id="admin-ajuda-lista"></div>
+            </div>
+
             <div class="admin-table-wrap">
                 <table class="admin-table" id="admin-table">
                     <thead>
@@ -145,14 +151,19 @@
                     const u = doc.data();
                     const uid = doc.id;
                     const isSelf = uid === meUid;
-                    const planoInfo = classificarPlano(u);
+                    // Admin não paga assinatura, então a coluna de status de
+                    // pagamento (teste/pix/cartão/pendente) só faz sentido
+                    // pros usuários normais.
+                    const planoInfo = u.role === 'admin' ? null : classificarPlano(u);
                     const tr = document.createElement('tr');
                     tr.innerHTML =
                         '<td>' + (u.name || '—') + (isSelf ? ' <span style="color:var(--color-text-secondary);font-size:12px;">(você)</span>' : '') + '</td>' +
                         '<td>' + (u.email || '—') + '</td>' +
                         '<td>' + formatarData(u.createdAt) + '</td>' +
-                        '<td><span class="admin-plan-badge admin-plan-badge--' + planoInfo.classe + '">' + planoInfo.label + '</span>' +
-                        (planoInfo.sub ? '<span class="admin-plan-sub">' + planoInfo.sub + '</span>' : '') + '</td>' +
+                        '<td>' + (planoInfo
+                            ? '<span class="admin-plan-badge admin-plan-badge--' + planoInfo.classe + '">' + planoInfo.label + '</span>' +
+                              (planoInfo.sub ? '<span class="admin-plan-sub">' + planoInfo.sub + '</span>' : '')
+                            : '<span style="color:var(--color-text-secondary);">—</span>') + '</td>' +
                         '<td><span class="admin-role-badge admin-role-badge--' + (u.role === 'admin' ? 'admin' : 'user') + '">' + (u.role === 'admin' ? 'Admin' : 'Usuário') + '</span></td>' +
                         '<td></td>';
 
@@ -176,12 +187,19 @@
                         btnVerificar.style.padding = '4px 10px';
                         btnVerificar.style.fontSize = '12px';
                         btnVerificar.style.marginRight = '6px';
-                        btnVerificar.title = 'Use quando o link de confirmação por e-mail não funcionar no aparelho da pessoa (ex.: iPhone)';
-                        btnVerificar.textContent = 'Confirmar e-mail';
-                        btnVerificar.addEventListener('click', function () {
-                            verificarEmailManualmente(uid, btnVerificar);
-                        });
-                        tdAcao.appendChild(btnVerificar);
+                        // Só mostra o botão pra quem realmente ainda não confirmou o
+                        // e-mail. Quem já clicou no link não precisa e não deve
+                        // aparecer aqui (emailVerified é sincronizado pelo auth.js
+                        // assim que o app percebe que a pessoa confirmou).
+                        const precisaConfirmar = u.exigeVerificacaoEmail && !u.emailVerified;
+                        if (precisaConfirmar) {
+                            btnVerificar.title = 'Use quando o link de confirmação por e-mail não funcionar no aparelho da pessoa (ex.: iPhone)';
+                            btnVerificar.textContent = 'Confirmar e-mail';
+                            btnVerificar.addEventListener('click', function () {
+                                verificarEmailManualmente(uid, btnVerificar);
+                            });
+                            tdAcao.appendChild(btnVerificar);
+                        }
 
                         const btnExcluir = document.createElement('button');
                         btnExcluir.type = 'button';
@@ -275,6 +293,86 @@
                     });
             }
 
+            // --- Pedidos de ajuda de quem clicou em "Não consegui confirmar o
+            // e-mail" (tela verificar-email.html). Fica escutando em tempo
+            // real: assim que alguém pede, o banner aparece sozinho aqui,
+            // sem precisar recarregar a página. ---
+            const ajudaBanner = document.getElementById('admin-ajuda-banner');
+            const ajudaLista = document.getElementById('admin-ajuda-lista');
+            let ultimaQtdPedidos = 0;
+
+            function tempoAtras(timestamp) {
+                if (!timestamp || !timestamp.toDate) return '';
+                const ms = Date.now() - timestamp.toDate().getTime();
+                const min = Math.floor(ms / 60000);
+                if (min < 1) return 'agora mesmo';
+                if (min < 60) return 'há ' + min + (min === 1 ? ' minuto' : ' minutos');
+                const h = Math.floor(min / 60);
+                return 'há ' + h + (h === 1 ? ' hora' : ' horas');
+            }
+
+            function renderAjuda(snapshot) {
+                if (snapshot.empty) {
+                    ajudaBanner.hidden = true;
+                    ultimaQtdPedidos = 0;
+                    return;
+                }
+                ajudaBanner.hidden = false;
+
+                // Avisa com uma notificação do navegador quando chega um pedido novo
+                // (só funciona se o admin já tiver autorizado notificações).
+                if (snapshot.size > ultimaQtdPedidos && ultimaQtdPedidos !== 0 && window.Notification && Notification.permission === 'granted') {
+                    const novo = snapshot.docs[0].data();
+                    new Notification('Pedido de ajuda com verificação', {
+                        body: (novo.name || novo.email || 'Um usuário') + ' não conseguiu confirmar o e-mail.'
+                    });
+                }
+                ultimaQtdPedidos = snapshot.size;
+
+                ajudaLista.innerHTML = '';
+                snapshot.forEach(function (doc) {
+                    const p = doc.data();
+                    const uid = doc.id;
+                    const linha = document.createElement('div');
+                    linha.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #f0d9a8;';
+                    linha.innerHTML =
+                        '<span style="color:#5a4200;font-size:14px;">' +
+                            '<strong>' + (p.name || '—') + '</strong> · ' + (p.email || '—') +
+                            ' <span style="color:#8a5a00cc;font-size:12px;">(' + tempoAtras(p.criadoEm) + ')</span>' +
+                        '</span>';
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn--primary';
+                    btn.style.padding = '4px 10px';
+                    btn.style.fontSize = '12px';
+                    btn.style.flexShrink = '0';
+                    btn.textContent = 'Liberar acesso';
+                    btn.addEventListener('click', function () {
+                        btn.disabled = true;
+                        AppAuth.chamarApi('verificarEmailManualmente', { uid: uid })
+                            .then(function () {
+                                return AppAuth.db.collection('pedidosVerificacao').doc(uid).update({ atendido: true });
+                            })
+                            .then(function () {
+                                showToast('Acesso liberado! A pessoa já pode entrar no app.');
+                            })
+                            .catch(function (err) {
+                                console.error(err);
+                                showToast(err.message || 'Erro ao liberar o acesso.');
+                                btn.disabled = false;
+                            });
+                    });
+                    linha.appendChild(btn);
+                    ajudaLista.appendChild(linha);
+                });
+            }
+
+            // Pede permissão pra poder avisar o admin com uma notificação do
+            // navegador quando chegar um pedido novo (opcional, sem push server).
+            if (window.Notification && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+
             function excluirUsuario(uid) {
                 AppAuth.chamarApi('excluirUsuario', { uid: uid })
                     .then(function () {
@@ -291,6 +389,11 @@
                 document.getElementById('user-name-label').textContent = perfil.name;
                 overlay.style.display = 'none';
                 container.style.display = '';
+
+                AppAuth.db.collection('pedidosVerificacao').where('atendido', '==', false)
+                    .orderBy('criadoEm', 'desc').onSnapshot(renderAjuda, function (err) {
+                        console.error('Erro ao observar pedidos de ajuda:', err);
+                    });
 
                 AppAuth.db.collection('users').orderBy('createdAt', 'desc').onSnapshot(
                     renderUsuarios,

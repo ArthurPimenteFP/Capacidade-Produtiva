@@ -116,6 +116,19 @@
                 window.location.href = 'login.html';
                 return;
             }
+            // O Firebase Auth é quem sabe de verdade se o e-mail foi confirmado,
+            // mas o painel do admin só consegue listar usuários pelo Firestore.
+            // Por isso, assim que o app percebe que o e-mail foi confirmado
+            // (clicando no link, ou depois que um admin libera manualmente),
+            // ele copia esse "sim" pro Firestore, uma única vez.
+            if (user.emailVerified) {
+                db.collection('users').doc(user.uid).get().then(function (doc) {
+                    if (doc.exists && !doc.data().emailVerified) {
+                        db.collection('users').doc(user.uid).update({ emailVerified: true })
+                            .catch(function (e) { console.error('Erro ao sincronizar emailVerified:', e); });
+                    }
+                }).catch(function (e) { console.error(e); });
+            }
             db.collection('users').doc(user.uid).onSnapshot(function (doc) {
                 const perfil = doc.exists ? doc.data() : {};
                 callback({

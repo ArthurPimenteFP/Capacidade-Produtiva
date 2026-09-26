@@ -32,6 +32,7 @@
             <button type="button" class="btn btn--primary auth-submit" id="btn-ja-confirmei">Já confirmei</button>
             <button type="button" class="btn btn--secondary auth-submit" id="btn-reenviar" style="margin-top:var(--space-md);">Reenviar e-mail</button>
 
+            <p class="auth-switch"><a href="#" id="link-nao-consegui">Não consegui confirmar o e-mail</a></p>
             <p class="auth-switch"><a href="#" id="link-sair">Sair da conta</a></p>
         </div>
     </div>
@@ -95,6 +96,38 @@
                         btnReenviar.textContent = 'Reenviar e-mail (' + s + 's)';
                         if (s <= 0) { clearInterval(t); btnReenviar.disabled = false; btnReenviar.textContent = 'Reenviar e-mail'; }
                     }, 1000);
+                });
+            });
+
+            // --- "Não consegui confirmar o e-mail": avisa os admins em tempo
+            // real (painel admin) com o nome e e-mail de quem pediu ajuda,
+            // pra eles liberarem o acesso manualmente sem precisar do link. ---
+            const linkNaoConsegui = document.getElementById('link-nao-consegui');
+            linkNaoConsegui.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (!usuarioAtual || linkNaoConsegui.dataset.enviando === '1') return;
+                linkNaoConsegui.dataset.enviando = '1';
+                const textoOriginal = linkNaoConsegui.textContent;
+                linkNaoConsegui.textContent = 'Avisando o suporte...';
+
+                AppAuth.db.collection('users').doc(usuarioAtual.uid).get().then(function (doc) {
+                    const nome = (doc.exists && doc.data().name) || usuarioAtual.email;
+                    return AppAuth.db.collection('pedidosVerificacao').doc(usuarioAtual.uid).set({
+                        uid: usuarioAtual.uid,
+                        name: nome,
+                        email: usuarioAtual.email,
+                        atendido: false,
+                        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }).then(function () {
+                    info.style.color = 'var(--color-primary)';
+                    info.textContent = 'Um administrador foi avisado e vai liberar seu acesso em breve. Pode fechar essa tela — ela libera sozinha assim que isso acontecer.';
+                    linkNaoConsegui.textContent = 'Suporte já foi avisado ✓';
+                }).catch(function (err) {
+                    console.error(err);
+                    mostrarErro('Não foi possível avisar o suporte agora. Tente de novo em instantes.');
+                    linkNaoConsegui.textContent = textoOriginal;
+                    linkNaoConsegui.dataset.enviando = '0';
                 });
             });
 

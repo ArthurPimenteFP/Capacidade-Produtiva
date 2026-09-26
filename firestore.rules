@@ -53,5 +53,18 @@ service cloud.firestore {
     match /userdata/{userId} {
       allow read, write: if estaLogado() && (request.auth.uid == userId || ehAdmin());
     }
+
+    // Pedidos de ajuda de quem clicou em "Não consegui confirmar o e-mail"
+    // (tela verificar-email.html). Só a própria pessoa cria/atualiza o seu
+    // pedido (sempre como "não atendido"); só o admin lê a lista e marca
+    // como atendido depois de liberar o acesso manualmente.
+    match /pedidosVerificacao/{userId} {
+      allow read: if ehAdmin();
+      allow create, update: if estaLogado() && request.auth.uid == userId &&
+                              request.resource.data.uid == userId &&
+                              request.resource.data.atendido == false;
+      allow update: if ehAdmin();
+      allow delete: if ehAdmin();
+    }
   }
 }
