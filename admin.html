@@ -170,6 +170,19 @@
                         });
                         tdAcao.appendChild(btnRole);
 
+                        const btnVerificar = document.createElement('button');
+                        btnVerificar.type = 'button';
+                        btnVerificar.className = 'btn btn--secondary';
+                        btnVerificar.style.padding = '4px 10px';
+                        btnVerificar.style.fontSize = '12px';
+                        btnVerificar.style.marginRight = '6px';
+                        btnVerificar.title = 'Use quando o link de confirmação por e-mail não funcionar no aparelho da pessoa (ex.: iPhone)';
+                        btnVerificar.textContent = 'Confirmar e-mail';
+                        btnVerificar.addEventListener('click', function () {
+                            verificarEmailManualmente(uid, btnVerificar);
+                        });
+                        tdAcao.appendChild(btnVerificar);
+
                         const btnExcluir = document.createElement('button');
                         btnExcluir.type = 'button';
                         btnExcluir.className = 'btn btn--danger';
@@ -242,6 +255,24 @@
                     'Tem certeza que deseja excluir a conta de "' + nomeOuEmail + '"? O login e todos os dados salvos dessa pessoa serão apagados. Essa ação não pode ser desfeita.',
                     function () { excluirUsuario(uid); }
                 );
+            }
+
+            // --- Confirma o e-mail de quem não conseguiu clicar no link
+            // (ex.: link não abre em alguns iPhones). Não precisa de
+            // confirmação: é uma ação segura e pode ser refeita sem problema. ---
+            function verificarEmailManualmente(uid, botao) {
+                botao.disabled = true;
+                AppAuth.chamarApi('verificarEmailManualmente', { uid: uid })
+                    .then(function () {
+                        showToast('E-mail confirmado! A pessoa já pode entrar no app.');
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        showToast(err.message || 'Erro ao confirmar o e-mail.');
+                    })
+                    .then(function () {
+                        botao.disabled = false;
+                    });
             }
 
             function excluirUsuario(uid) {
