@@ -66,5 +66,14 @@ service cloud.firestore {
       allow update: if ehAdmin();
       allow delete: if ehAdmin();
     }
+
+    // Tokens de notificação push (Firebase Cloud Messaging) de cada admin,
+    // um documento por aparelho/navegador em que ele ativou as notificações.
+    // Só o próprio dono gerencia os tokens dele pelo navegador; a API
+    // notificarAdmins.js lê todos usando o Admin SDK (que ignora estas
+    // regras), então não precisa de permissão de leitura por admin aqui.
+    match /pushTokens/{userId}/tokens/{tokenId} {
+      allow read, write: if estaLogado() && request.auth.uid == userId;
+    }
   }
 }

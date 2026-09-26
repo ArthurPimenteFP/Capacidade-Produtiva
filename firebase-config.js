@@ -18,3 +18,13 @@ window.FIREBASE_CONFIG = {
   messagingSenderId: "686733003266",
   appId: "1:686733003266:web:c8f78b97163d9f8cc1b51b"
 };
+
+// ===========================
+// NOTIFICAÇÕES PUSH (Firebase Cloud Messaging)
+// ===========================
+// Chave pública usada pra registrar o navegador do admin pra receber
+// notificações push (funciona até com o site fechado). Gere a sua em:
+// Firebase Console > Configurações do projeto > Cloud Messaging >
+// "Certificados push da Web" > Gerar par de chaves. Cole o valor que
+// aparecer (uma string longa) abaixo, entre as aspas.
+window.FIREBASE_VAPID_KEY = "COLE_AQUI_A_CHAVE_VAPID_GERADA_NO_FIREBASE";

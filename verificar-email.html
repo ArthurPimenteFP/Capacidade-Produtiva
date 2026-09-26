@@ -123,6 +123,11 @@
                     info.style.color = 'var(--color-primary)';
                     info.textContent = 'Um administrador foi avisado e vai liberar seu acesso em breve. Pode fechar essa tela — ela libera sozinha assim que isso acontecer.';
                     linkNaoConsegui.textContent = 'Suporte já foi avisado ✓';
+                    // Dispara a notificação push pros admins (se algum tiver
+                    // ativado). Não bloqueia a mensagem de sucesso acima nem
+                    // precisa dar certo pra pessoa continuar — o banner no
+                    // painel admin já resolve mesmo sem o push.
+                    AppAuth.chamarApi('notificarAdmins', {}).catch(function (e) { console.error(e); });
                 }).catch(function (err) {
                     console.error(err);
                     mostrarErro('Não foi possível avisar o suporte agora. Tente de novo em instantes.');

@@ -43,6 +43,11 @@
         <div class="admin-page">
             <p class="auth-error" id="admin-error" role="alert"></p>
 
+            <div id="admin-push-banner" style="background:#eef6ff;border:1px solid #a9cdf5;border-radius:var(--radius-md,10px);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <span id="admin-push-texto" style="color:#1f4f8a;font-size:14px;">📲 Ative as notificações pra receber um aviso no celular sempre que alguém pedir ajuda com a verificação.</span>
+                <button type="button" class="btn btn--secondary" id="btn-ativar-push" style="padding:6px 14px;font-size:13px;flex-shrink:0;">Ativar notificações</button>
+            </div>
+
             <div id="admin-ajuda-banner" hidden style="background:#fff4e5;border:1px solid #f0b95c;border-radius:var(--radius-md,10px);padding:14px 16px;margin-bottom:16px;">
                 <strong style="display:block;margin-bottom:8px;color:#8a5a00;">⚠️ Pessoas que não conseguiram confirmar o e-mail</strong>
                 <div id="admin-ajuda-lista"></div>
@@ -74,6 +79,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="api-config.js"></script>
     <script src="auth.js"></script>
@@ -369,8 +375,78 @@
 
             // Pede permissão pra poder avisar o admin com uma notificação do
             // navegador quando chegar um pedido novo (opcional, sem push server).
-            if (window.Notification && Notification.permission === 'default') {
-                Notification.requestPermission();
+            // --- Notificações push (Firebase Cloud Messaging): avisa o admin
+            // no celular/navegador mesmo com o site fechado, sempre que
+            // alguém pedir ajuda com a verificação. Guarda o "token" desse
+            // aparelho no Firestore; a API notificarAdmins.js usa esses
+            // tokens pra mandar o push quando alguém clica em "Não consegui
+            // confirmar o e-mail". ---
+            const btnAtivarPush = document.getElementById('btn-ativar-push');
+            const pushBanner = document.getElementById('admin-push-banner');
+            const pushTexto = document.getElementById('admin-push-texto');
+
+            function salvarTokenPush(token) {
+                return AppAuth.db.collection('pushTokens').doc(meUid).collection('tokens').doc(token).set({
+                    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+                    dispositivo: navigator.userAgent
+                });
+            }
+
+            function ativarNotificacoesPush() {
+                if (!('serviceWorker' in navigator) || !window.firebase || !firebase.messaging || !firebase.messaging.isSupported()) {
+                    pushTexto.textContent = 'Esse navegador não suporta notificações push. No iPhone, adicione o site à Tela de Início primeiro (compartilhar → "Adicionar à Tela de Início").';
+                    btnAtivarPush.hidden = true;
+                    return;
+                }
+                if (!window.FIREBASE_VAPID_KEY || window.FIREBASE_VAPID_KEY.indexOf('COLE_AQUI') === 0) {
+                    pushTexto.textContent = 'Notificações push ainda não configuradas (falta a chave VAPID no firebase-config.js).';
+                    btnAtivarPush.hidden = true;
+                    return;
+                }
+
+                btnAtivarPush.disabled = true;
+                btnAtivarPush.textContent = 'Ativando...';
+
+                navigator.serviceWorker.register('firebase-messaging-sw.js').then(function (registration) {
+                    const messaging = firebase.messaging();
+                    return messaging.getToken({ vapidKey: window.FIREBASE_VAPID_KEY, serviceWorkerRegistration: registration });
+                }).then(function (token) {
+                    if (!token) {
+                        throw new Error('Permissão de notificação não concedida.');
+                    }
+                    return salvarTokenPush(token);
+                }).then(function () {
+                    pushBanner.style.background = '#e7f7ec';
+                    pushBanner.style.borderColor = '#8fd6a8';
+                    pushTexto.style.color = '#1c6b3a';
+                    pushTexto.textContent = '✅ Notificações ativadas nesse aparelho.';
+                    btnAtivarPush.hidden = true;
+                }).catch(function (err) {
+                    console.error('Erro ao ativar notificações push:', err);
+                    btnAtivarPush.disabled = false;
+                    btnAtivarPush.textContent = 'Ativar notificações';
+                    if (window.Notification && Notification.permission === 'denied') {
+                        pushTexto.textContent = 'As notificações estão bloqueadas nesse navegador. Ative nas configurações do site (cadeado ao lado do endereço) e tente de novo.';
+                    } else {
+                        pushTexto.textContent = 'Não foi possível ativar as notificações agora. Tente de novo em instantes.';
+                    }
+                });
+            }
+
+            btnAtivarPush.addEventListener('click', ativarNotificacoesPush);
+
+            // Se o admin já tinha autorizado notificações antes (em uma visita
+            // anterior), reativa sozinho, sem precisar clicar de novo — só
+            // garante que o token mais recente está salvo no Firestore.
+            let pushJaChecado = false;
+            function checarPushAutomaticamente() {
+                if (pushJaChecado) return;
+                pushJaChecado = true;
+                if (window.Notification && Notification.permission === 'granted') {
+                    ativarNotificacoesPush();
+                } else if (window.Notification && Notification.permission === 'denied') {
+                    pushTexto.textContent = 'As notificações estão bloqueadas nesse navegador. Ative nas configurações do site (cadeado ao lado do endereço) pra receber avisos no celular.';
+                }
             }
 
             function excluirUsuario(uid) {
@@ -389,6 +465,16 @@
                 document.getElementById('user-name-label').textContent = perfil.name;
                 overlay.style.display = 'none';
                 container.style.display = '';
+                checarPushAutomaticamente();
+
+                // Corrige no Firestore quem já confirmou o e-mail de verdade
+                // (Firebase Auth) mas nunca mais reabriu o app pra sincronizar
+                // sozinho. A lista de usuários é em tempo real (onSnapshot),
+                // então assim que isso terminar o botão some sozinho pra
+                // quem já está verificado, sem precisar recarregar a página.
+                AppAuth.chamarApi('sincronizarEmailVerificado', {}).catch(function (err) {
+                    console.error('Erro ao sincronizar e-mails verificados:', err);
+                });
 
                 AppAuth.db.collection('pedidosVerificacao').where('atendido', '==', false)
                     .orderBy('criadoEm', 'desc').onSnapshot(renderAjuda, function (err) {
