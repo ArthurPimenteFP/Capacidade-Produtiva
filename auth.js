@@ -63,6 +63,9 @@
                         return cred.user.sendEmailVerification().catch(function (e) { console.error(e); });
                     })
                     .then(function () {
+                        return registrarSessaoNesteAparelho(cred.user.uid);
+                    })
+                    .then(function () {
                         registrando = false;
                         return cred;
                     })
@@ -81,6 +84,9 @@
         return auth.signInWithEmailAndPassword(email, senha)
             .catch(function (err) {
                 throw new Error(traduzErro(err));
+            })
+            .then(function (cred) {
+                return registrarSessaoNesteAparelho(cred.user.uid).then(function () { return cred; });
             });
     }
 
@@ -96,6 +102,37 @@
     // --- Logout ---
     function logout() {
         return auth.signOut();
+    }
+
+    // --- Controle de "1 sessão por vez" (exceto administradores) ---
+    // Cada aparelho guarda seu próprio "carimbo" (sessionId) no localStorage.
+    // No login/cadastro, o app sobrescreve o sessionId salvo no Firestore
+    // com um novo valor. Qualquer OUTRO aparelho que já estivesse logado
+    // (guardando o valor antigo) percebe a diferença em tempo real (dentro
+    // de exigirLogin, mais abaixo) e é deslogado sozinho. Isso impede que
+    // a mesma conta de usuário comum fique aberta em dois aparelhos ao
+    // mesmo tempo (compartilhamento de conta). Administradores são isentos:
+    // podem usar a mesma conta em vários aparelhos simultaneamente.
+    function chaveSessaoLocal(uid) {
+        return 'colhedoras_sessionId_' + uid;
+    }
+
+    function gerarSessionId() {
+        if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+        return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+    }
+
+    // Marca ESTE aparelho como o "dono" da sessão atual da conta. Chamado
+    // logo depois de um login ou cadastro bem-sucedido.
+    function registrarSessaoNesteAparelho(uid) {
+        return db.collection('users').doc(uid).get().then(function (doc) {
+            if (doc.exists && doc.data().role === 'admin') return; // admin não entra nessa regra
+            const novoId = gerarSessionId();
+            localStorage.setItem(chaveSessaoLocal(uid), novoId);
+            return db.collection('users').doc(uid).set({ sessionId: novoId }, { merge: true });
+        }).catch(function (e) {
+            console.error('Erro ao registrar sessão do aparelho:', e);
+        });
     }
 
     // --- Busca o perfil (nome/role/plano) do usuário logado no Firestore ---
@@ -131,6 +168,21 @@
             }
             db.collection('users').doc(user.uid).onSnapshot(function (doc) {
                 const perfil = doc.exists ? doc.data() : {};
+
+                // Sessão única (exceto admin): se o sessionId salvo no Firestore
+                // não bate com o que este aparelho guardou localmente, é porque
+                // a conta foi logada em outro aparelho depois deste — desloga
+                // este aparelho e avisa na tela de login.
+                if (perfil.role !== 'admin' && perfil.sessionId) {
+                    const sessaoLocal = localStorage.getItem(chaveSessaoLocal(user.uid));
+                    if (sessaoLocal && sessaoLocal !== perfil.sessionId) {
+                        auth.signOut().then(function () {
+                            window.location.href = 'login.html?motivo=outro_dispositivo';
+                        });
+                        return;
+                    }
+                }
+
                 callback({
                     uid: user.uid,
                     email: user.email,

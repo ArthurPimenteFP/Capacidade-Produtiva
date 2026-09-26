@@ -63,6 +63,12 @@
                 errorBox.classList.add('is-visible');
             }
 
+            // Se este aparelho acabou de ser deslogado à força porque a
+            // mesma conta foi acessada em outro aparelho, avisa por quê.
+            if (new URLSearchParams(window.location.search).get('motivo') === 'outro_dispositivo') {
+                mostrarErro('Sua conta foi acessada em outro aparelho, por isso você foi desconectado deste. Se não foi você, recomendamos trocar sua senha.');
+            }
+
             const infoBox = document.getElementById('login-info');
             const linkEsqueci = document.getElementById('link-esqueci');
             let bloqueadoAte = 0;
